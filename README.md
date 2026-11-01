@@ -7,7 +7,11 @@ Riders — including other owners — browse open trips, look **inside the car**
 
 ## Highlights
 
-- **Model-accurate cars, drawn to scale** — 11 real cars (Maruti Swift & Ertiga, Hyundai Creta & Verna, Honda City, Tata Nexon, Mahindra XUV700, Toyota Innova Crysta & Fortuner, Kia Carens, Tesla Model Y) using their actual length/width/wheelbase, body style, seat layout (5-seat, 2+3+2, 2+2 captain+3, 2+2+2), factory paint names (incl. dual-tone roofs, metallic/pearl/matte finishes) and interior trims.
+- **3D showroom** — every car is built in 3D from its real length, width, height and wheelbase: clear-coat factory paint, tinted glass, alloys, working lamps, Indian number plates, opening doors, and a roof that lifts off to show the real seat layout with passengers (♂ blue / ♀ pink). Orbit, zoom, front/side/rear/top cameras, day/night, in a white exhibition studio with reflective floor (scene approach adapted from [3d-car-viewing](https://github.com/jiaxiantao/3d-car-viewing), see `ATTRIBUTION.md`). Tap a seat in 3D to book it; the to-scale 2D **Seat map** is one tap away.
+- **30 Indian-market cars** — Maruti (Swift, Baleno, Dzire, WagonR, Brezza, Fronx, Ertiga), Hyundai (i20, Venue, Creta, Verna), Tata (Punch, Nexon, Harrier, Safari), Mahindra (XUV 3XO, XUV700, Thar, Scorpio-N), Kia (Sonet, Seltos, Carens), Toyota (Hyryder, Innova Crysta, Innova Hycross, Fortuner), Honda (Amaze, City), MG Hector and Tesla Model Y.
+- **Drop-in real 3D models** — put `client/public/models/cars/<model-id>.glb` and it replaces the built car automatically (see the README in that folder).
+
+- **Model-accurate cars, drawn to scale** — every model uses its actual length/width/wheelbase, body style, seat layout (5-seat, 2+3+2, 2+2 captain+3, 2+2+2), factory paint names (incl. dual-tone roofs, metallic/pearl/matte finishes) and interior trims.
 - **Real interiors** — each car gets its own dashboard (floating / integrated / panoramic dual-screen / Tesla 15.4"), analog or digital cluster, manual or auto shifter, captain-seat armrests, door cards, speakers, boot, and right-hand-drive steering wheel.
 - **Car stage** — lift the roof (cabin ↔ exterior with sunroof / panoramic / glass roof and roof rails), day/night with headlamps and ambient lighting colours, 3D tilt, and doors that swing open when you hover a seat.
 - **Gender-aware seat booking** — occupied seats show a person (blue ♂ / pink ♀); hovering a seat tells you who you'd sit next to. Women drivers can publish **women-only** rides.
@@ -56,7 +60,8 @@ server/db.ts             JSON-file store (data/db.json, atomic writes)
 client/src/lib/carGeometry.ts   turns mm dimensions into a top-down drawing plan
 client/src/components/CarView.tsx  the SVG car renderer (body, glass, cabin, seats, occupants)
 client/src/lib/carPhotos.ts     live Wikimedia photo lookup (generation hints per model in catalog `wiki`)
-client/src/components/CarStage.tsx parking-bay stage with roof / night / 3D / ambient controls
+client/src/three/               3D showroom: carBuilder.ts (dimensions → body), Car3D.tsx, Scene3D.tsx
+client/src/components/CarStage.tsx 3D / seat-map stage with roof, day/night and camera controls
 client/src/pages/*       Find a ride, trip & seat picker, garage, add-car configurator, offer a ride, my trips, showroom
 ```
 

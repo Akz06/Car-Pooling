@@ -7,6 +7,8 @@
  * right-hand drive (Indian market), so the driver sits in seat "1R".
  */
 
+import { MORE_INDIAN_MODELS } from './catalog-more.ts';
+
 export type BodyType = 'hatchback' | 'sedan' | 'compact-suv' | 'suv' | 'mpv';
 export type Finish = 'solid' | 'metallic' | 'pearl' | 'matte';
 export type SeatKind = 'bucket' | 'bench' | 'captain';
@@ -55,6 +57,7 @@ export interface CarModel {
   body: BodyType;
   lengthMm: number;
   widthMm: number;
+  heightMm: number;
   wheelbaseMm: number;
   engine: string;
   transmission: string;
@@ -95,6 +98,7 @@ export const CATALOG: CarModel[] = [
     body: 'hatchback',
     lengthMm: 3860,
     widthMm: 1735,
+    heightMm: 1520,
     wheelbaseMm: 2450,
     engine: '1.2L Z12E 3-cyl',
     transmission: '5-speed MT / AMT',
@@ -133,6 +137,7 @@ export const CATALOG: CarModel[] = [
     body: 'compact-suv',
     lengthMm: 4330,
     widthMm: 1790,
+    heightMm: 1635,
     wheelbaseMm: 2610,
     engine: '1.5L Turbo GDi / 1.5L CRDi',
     transmission: '7-speed DCT / 6-speed AT',
@@ -172,6 +177,7 @@ export const CATALOG: CarModel[] = [
     body: 'sedan',
     lengthMm: 4583,
     widthMm: 1748,
+    heightMm: 1489,
     wheelbaseMm: 2600,
     engine: '1.5L i-VTEC / e:HEV',
     transmission: '6-speed MT / CVT',
@@ -209,6 +215,7 @@ export const CATALOG: CarModel[] = [
     body: 'compact-suv',
     lengthMm: 3995,
     widthMm: 1804,
+    heightMm: 1620,
     wheelbaseMm: 2498,
     engine: '1.2L Turbo Revotron / 1.5L Revotorq',
     transmission: '6-speed MT / 7-speed DCA',
@@ -247,6 +254,7 @@ export const CATALOG: CarModel[] = [
     body: 'suv',
     lengthMm: 4695,
     widthMm: 1890,
+    heightMm: 1755,
     wheelbaseMm: 2750,
     engine: '2.0L mStallion turbo / 2.2L mHawk',
     transmission: '6-speed AT',
@@ -286,6 +294,7 @@ export const CATALOG: CarModel[] = [
     body: 'mpv',
     lengthMm: 4735,
     widthMm: 1830,
+    heightMm: 1795,
     wheelbaseMm: 2750,
     engine: '2.4L 2GD-FTV diesel',
     transmission: '5-speed MT',
@@ -322,6 +331,7 @@ export const CATALOG: CarModel[] = [
     body: 'mpv',
     lengthMm: 4395,
     widthMm: 1735,
+    heightMm: 1690,
     wheelbaseMm: 2740,
     engine: '1.5L K15C Smart Hybrid',
     transmission: '5-speed MT / 6-speed AT',
@@ -358,6 +368,7 @@ export const CATALOG: CarModel[] = [
     body: 'mpv',
     lengthMm: 4540,
     widthMm: 1800,
+    heightMm: 1708,
     wheelbaseMm: 2780,
     engine: '1.5L Turbo GDi',
     transmission: '7-speed DCT',
@@ -397,6 +408,7 @@ export const CATALOG: CarModel[] = [
     body: 'suv',
     lengthMm: 4795,
     widthMm: 1855,
+    heightMm: 1857,
     wheelbaseMm: 2745,
     engine: '2.8L 1GD-FTV diesel',
     transmission: '6-speed AT, 4WD',
@@ -434,6 +446,7 @@ export const CATALOG: CarModel[] = [
     body: 'suv',
     lengthMm: 4797,
     widthMm: 1920,
+    heightMm: 1624,
     wheelbaseMm: 2890,
     engine: 'Single rear motor',
     transmission: 'Single-speed',
@@ -471,6 +484,7 @@ export const CATALOG: CarModel[] = [
     body: 'sedan',
     lengthMm: 4535,
     widthMm: 1765,
+    heightMm: 1475,
     wheelbaseMm: 2670,
     engine: '1.5L Turbo GDi',
     transmission: '7-speed DCT',
@@ -501,6 +515,7 @@ export const CATALOG: CarModel[] = [
       { id: 'black-red', name: 'Black with Red (Turbo)', seat: '#1a1b1d', insert: '#262729', bolster: '#131415', stitch: '#d0182b', dash: '#141516', accent: '#d0182b', carpet: '#141414', material: 'leatherette' },
     ],
   },
+  ...MORE_INDIAN_MODELS,
 ];
 
 export function getModel(id: string): CarModel | undefined {

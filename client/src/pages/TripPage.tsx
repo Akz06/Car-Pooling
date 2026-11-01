@@ -105,6 +105,8 @@ export function TripPage() {
       <div className="trip-layout">
         <div>
           <CarStage
+            reveal
+            plate={trip.car.plate}
             model={model}
             paint={paint}
             interior={interior}

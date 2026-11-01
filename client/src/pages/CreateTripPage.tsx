@@ -103,7 +103,7 @@ export function CreateTripPage() {
               })}
             </div>
           )}
-          <CarStage model={model} paint={paint} interior={interior} seats={seats} onSeatClick={toggle} showLabels />
+          <CarStage plate={car.plate} model={model} paint={paint} interior={interior} seats={seats} onSeatClick={toggle} showLabels />
           <p className="muted" style={{ fontSize: 13 }}>
             Offering <b style={{ color: 'var(--text)' }}>{offered.length}</b> of {allSeats(model).length - 1} passenger seats in your {carTitle(model)} <NumberPlate plate={car.plate} size="sm" />
           </p>

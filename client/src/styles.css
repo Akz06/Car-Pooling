@@ -348,3 +348,31 @@ h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: v
   .mobile-book small { color: var(--muted); font-size: 12px; }
   .toast { bottom: 150px; width: calc(100% - 28px); text-align: center; }
 }
+
+/* ---------- 3D showroom stage ---------- */
+.stage__3d { position: relative; height: clamp(420px, 62vh, 620px); background: #dbe7f5; }
+.stage--night .stage__3d { background: #02050d; }
+.stage__3d canvas { display: block; touch-action: none; }
+.stage__loading { position: absolute; inset: 0; display: grid; place-items: center; color: #475569; font-weight: 600; }
+.stage--night .stage__loading { color: #94a3b8; }
+.stage--3d .stage__toolbar .seg { background: rgba(15, 23, 42, .72); }
+.stage__cams { position: absolute; z-index: 3; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; gap: 4px; padding: 4px;
+  background: rgba(15, 23, 42, .72); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, .1); border-radius: 999px; }
+.stage__cams button { border: 0; background: transparent; color: #cbd5e1; font: inherit; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+.stage__cams button.on { background: #f8fafc; color: #0f172a; }
+.stage__hint { position: absolute; z-index: 2; right: 14px; bottom: 20px; font-size: 11px; color: rgba(15, 23, 42, .55); pointer-events: none; }
+.stage--night .stage__hint { color: rgba(226, 232, 240, .5); }
+.seat3d-badge { display: inline-flex; flex-direction: column; align-items: center; border: 2px solid #fff; color: #fff; border-radius: 999px;
+  min-width: 26px; height: 26px; padding: 0 6px; justify-content: center; font: 800 14px/1 system-ui, sans-serif; cursor: default;
+  box-shadow: 0 6px 14px -4px rgba(0, 0, 0, .55); user-select: none; position: relative; }
+.seat3d-badge--available, .seat3d-badge--selected { cursor: pointer; }
+.seat3d-badge--available { animation: badge-pulse 1.8s ease-in-out infinite; }
+.seat3d-badge em { position: absolute; top: 28px; font-style: normal; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; background: #0f172a; padding: 2px 6px; border-radius: 999px; white-space: nowrap; }
+.seat3d-badge--mine em { background: #facc15; color: #111; }
+@keyframes badge-pulse { 50% { box-shadow: 0 0 0 6px rgba(34, 197, 94, .25), 0 6px 14px -4px rgba(0, 0, 0, .55); } }
+@media (max-width: 640px) {
+  .stage__3d { height: 64vh; min-height: 380px; }
+  .stage__cams { top: 52px; bottom: auto; left: 10px; transform: none; }
+  .stage__cams button { padding: 6px 10px; }
+  .stage__hint { display: none; }
+}

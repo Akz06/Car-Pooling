@@ -29,7 +29,9 @@ export default defineConfig(({ mode }) => {
   build: {
     outDir: fileURLToPath(new URL(isStatic ? `./dist-${mode}` : './dist', import.meta.url)),
     emptyOutDir: true,
-    rollupOptions: isStatic ? { output: { inlineDynamicImports: true } } : {},
+    // The sandboxed preview needs one script; GitHub Pages can lazy-load three.js as its own chunk.
+    rollupOptions: mode === 'demo' ? { output: { inlineDynamicImports: true } } : {},
+    chunkSizeWarningLimit: 1600,
   },
 };
 });
