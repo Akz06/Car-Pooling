@@ -1,12 +1,13 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, MemoryRouter } from 'react-router-dom';
+import { BrowserRouter, HashRouter, MemoryRouter } from 'react-router-dom';
 import { App } from './App';
 import { AuthProvider } from './lib/auth';
 import './styles.css';
 
-// The hosted preview runs in a sandboxed frame without real URLs, so it routes in memory.
-const Router = import.meta.env.VITE_DEMO ? MemoryRouter : BrowserRouter;
+// Static hosts have no server to answer deep links: GitHub Pages uses #/hash routes,
+// the sandboxed preview page (no usable URL) routes in memory.
+const Router = import.meta.env.VITE_ROUTER === 'hash' ? HashRouter : import.meta.env.VITE_ROUTER === 'memory' ? MemoryRouter : BrowserRouter;
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

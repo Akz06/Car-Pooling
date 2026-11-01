@@ -39,7 +39,7 @@ export function CarGallery({ model, ownPhoto, ownLabel = "Owner's photo" }: { mo
 
   if (!tabs.length) {
     if (photos === null && !failed) return <div className="gallery gallery--loading" aria-busy="true"><span>Loading real photos…</span></div>;
-    return <p className="muted gallery-note">{import.meta.env.VITE_DEMO
+    return <p className="muted gallery-note">{import.meta.env.VITE_PHOTOS_OFF
       ? 'Real Wikimedia photos load in the full app (this preview blocks outside images) — the drawing is to scale.'
       : "Real photos couldn't be loaded right now — the drawing above is to scale."}</p>;
   }

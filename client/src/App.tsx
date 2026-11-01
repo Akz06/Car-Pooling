@@ -22,7 +22,7 @@ const NAV: [string, string, string][] = [
 function DemoBanner() {
   return (
     <div className="demo-banner">
-      Preview — runs fully in your browser; data stays on this device.
+      Demo — runs fully in your browser; your data stays on this device.
       <button onClick={async () => { (await import('./demo/backend')).resetDemo(); location.reload(); }}>Reset</button>
     </div>
   );

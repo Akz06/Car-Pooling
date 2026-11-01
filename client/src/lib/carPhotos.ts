@@ -106,7 +106,7 @@ async function lookup(model: CarModel): Promise<CarPhotos> {
 
 export function loadCarPhotos(model: CarModel): Promise<CarPhotos> {
   // The hosted preview blocks requests to other sites, so photos only load in the full app.
-  if (import.meta.env.VITE_DEMO) return Promise.reject(new Error('Photos are not available in the preview'));
+  if (import.meta.env.VITE_PHOTOS_OFF) return Promise.reject(new Error('Photos are not available in the preview'));
   const cached = readCache()[model.id];
   if (cached && Date.now() - cached.at < TTL) return Promise.resolve(cached.photos);
   let p = memory.get(model.id);

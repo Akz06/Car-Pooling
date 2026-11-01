@@ -1,5 +1,7 @@
 # SeatShare — car pooling where you see the real car
 
+**Live demo:** https://akz06.github.io/Car-Pooling/ (deployed from `main` by GitHub Actions)
+
 Owners add the car they actually drive (exact model, factory paint, interior trim, number plate, optional photo) and publish trips.
 Riders — including other owners — browse open trips, look **inside the car**, see which seats are taken by a man ♂ (blue) or a woman ♀ (pink), and pick a free seat.
 
@@ -30,6 +32,12 @@ npm run build && npm start   # serves the built app + API on :4000
 ```
 
 Other scripts: `npm test` (API tests), `npm run typecheck`.
+
+### GitHub Pages
+
+`.github/workflows/pages.yml` runs the type-check and tests, then `npm run build:pages`, and deploys on every push to `main`.
+The Pages build runs the booking rules in the browser (data stays on each visitor's device), loads real Wikimedia photos, and uses `#/` links so pages survive a refresh.
+One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
 ### Preview on your phone
 
