@@ -10,6 +10,7 @@ import { neighbours, tripSeatStates } from '../lib/seats';
 import { CarStage } from '../components/CarStage';
 import { NumberPlate } from '../components/NumberPlate';
 import { SeatLegend } from '../components/SeatLegend';
+import { CarGallery } from '../components/CarPhotos';
 
 export function TripPage() {
   const { id } = useParams();
@@ -77,6 +78,7 @@ export function TripPage() {
   };
 
   const seats = tripSeatStates(trip, user, selected);
+  const showMobileBook = !isOwner && !myBooking && trip.status === 'open';
   // Seats the viewer can't book still render green, but booking is explained via toast.
   const focusInfo = focus ? seats[focus] : null;
   const near = focus && focus !== DRIVER_SEAT ? neighbours(trip, focus) : [];
@@ -114,7 +116,7 @@ export function TripPage() {
           </CarStage>
           <p className="muted" style={{ fontSize: 13, marginTop: 10 }}>
             {paint.name} {paint.finish} paint{paint.roof ? ' with contrast roof' : ''} · {interior.name} {interior.material.replace('-', ' ')} · drawn to scale from {model.lengthMm} × {model.widthMm} mm.
-            Hover a seat to open its door.
+            Hover or tap a seat to open its door.
           </p>
         </div>
 
@@ -158,7 +160,7 @@ export function TripPage() {
               )}
             </div>
 
-            <div style={{ marginTop: 14 }}>
+            <div style={{ marginTop: 14 }} className={showMobileBook ? 'trip-action' : undefined}>
               {isOwner ? (
                 trip.status === 'open' || trip.status === 'full' ? (
                   <button className="btn btn--danger btn--block" disabled={busy} onClick={() => confirm('Cancel this trip for everyone?') && act(() => api.cancel(trip.id), 'Trip cancelled')}>Cancel trip</button>
@@ -200,7 +202,7 @@ export function TripPage() {
 
           <div className="panel">
             <h4 style={{ marginTop: 0 }}>The car</h4>
-            {trip.car.photo && <img className="car-photo" src={trip.car.photo} alt={`${carTitle(model)} photo`} />}
+            <CarGallery model={model} ownPhoto={trip.car.photo} />
             <b>{trip.car.nickname ? `“${trip.car.nickname}” · ` : ''}{trip.car.year} {carTitle(model)}</b>
             <dl className="specs" style={{ margin: '10px 0 0' }}>
               <dt>Paint</dt><dd>{paint.name}</dd>
@@ -212,6 +214,17 @@ export function TripPage() {
           </div>
         </aside>
       </div>
+      {showMobileBook && (
+        <div className="mobile-book">
+          <div>
+            <b>{selected ? `${selected} · ${seatLabel(selected)}` : 'Tap a green seat'}</b>
+            <small>{rupees(trip.pricePerSeat)}{trip.pricePerSeat ? ' per seat' : ''} · {trip.seatsLeft} left</small>
+          </div>
+          <button className="btn btn--primary" disabled={busy || !selected} onClick={() => selected && act(() => api.book(trip.id, selected), `Seat ${selected} booked — see you on board!`)}>
+            {selected ? 'Book' : 'Select'}
+          </button>
+        </div>
+      )}
       {toast && <div className="toast">{toast}</div>}
     </div>
   );

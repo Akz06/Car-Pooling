@@ -45,6 +45,7 @@ h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: v
 .brand b { color: var(--accent); }
 .brand__mark svg { width: 16px; height: 26px; display: block; }
 .nav { display: flex; gap: 4px; flex: 1; overflow-x: auto; }
+.nav__icon { display: none; width: 22px; height: 22px; fill: currentColor; }
 .nav a { padding: 8px 12px; border-radius: 10px; color: var(--muted); font-weight: 500; white-space: nowrap; font-size: 14px; }
 .nav a:hover { color: var(--text); background: var(--panel); }
 .nav a.active { color: var(--text); background: var(--panel2); }
@@ -278,11 +279,67 @@ h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: v
   .list-trip { grid-template-columns: 120px 1fr; }
   .list-trip > :last-child { grid-column: span 2; }
 }
+/* ---------- photos ---------- */
+.gallery { margin: 12px 0 4px; }
+.gallery__frame { position: relative; border-radius: 12px; overflow: hidden; background: #0c111b; aspect-ratio: 16 / 10; }
+.gallery__frame img { width: 100%; height: 100%; object-fit: cover; display: block; animation: fade-in .4s ease; }
+.gallery__tabs { position: absolute; left: 8px; bottom: 8px; }
+.gallery__tabs button { padding: 4px 10px; font-size: 12px; }
+.gallery__broken, .gallery--loading { display: grid; place-items: center; color: var(--muted); font-size: 13px; height: 100%; }
+.gallery--loading { aspect-ratio: 16 / 10; border-radius: 12px; background: linear-gradient(90deg, #0c111b 0%, #1a2130 50%, #0c111b 100%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+.gallery-note { font-size: 13px; }
+.photo-credit { display: block; margin-top: 6px; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.photo-credit:hover { color: var(--text); text-decoration: underline; }
+.photo-thumb { object-fit: cover; border-radius: 10px; border: 2px solid rgba(255, 255, 255, .85); box-shadow: 0 8px 20px -6px #000; background: #111; }
+.trip-card__photo { position: absolute; right: 10px; top: 10px; width: 92px; height: 60px; z-index: 2; }
+.mobile-book { display: none; }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
 @media (max-width: 640px) {
-  .topbar { flex-wrap: wrap; gap: 10px; }
-  .nav { order: 3; flex: 1 0 100%; }
-  .topbar__user { margin-left: auto; }
+  .main { padding: 16px 14px 150px; }
+  /* backdrop-filter would make the header the containing block of the fixed tab bar */
+  .topbar { padding: 10px 14px; backdrop-filter: none; background: rgba(10, 13, 20, .97); }
   .topbar__name { display: none; }
-  .search { grid-template-columns: 1fr; }
-  .trip-grid { grid-template-columns: 1fr; }
+  .topbar__user { margin-left: auto; }
+  /* app-style bottom tab bar */
+  .nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; gap: 0; overflow: visible;
+    background: rgba(10, 13, 20, .94); backdrop-filter: blur(14px); border-top: 1px solid var(--line);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  }
+  .nav a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; font-size: 10.5px; border-radius: 10px; }
+  .nav a.active { background: transparent; color: var(--accent); }
+  .nav__icon { display: block; }
+  h1 { font-size: 24px; }
+  .page-head { margin-bottom: 14px; }
+  .hero { gap: 14px; }
+  .search { grid-template-columns: 1fr 1fr; }
+  .search .input[type=date] { grid-column: span 1; }
+  .search .btn { grid-column: span 1; }
+  .filters { flex-wrap: nowrap; overflow-x: auto; margin: 0 -14px 14px; padding: 0 14px 4px; scrollbar-width: none; }
+  .filters::-webkit-scrollbar { display: none; }
+  .filters > * { flex: none; }
+  .trip-grid, .garage-grid { grid-template-columns: 1fr; }
+  .trip-card__photo { width: 76px; height: 50px; }
+  .model-grid { grid-template-columns: 1fr 1fr; }
+  .panel { padding: 16px; }
+  .stage { border-radius: 16px; }
+  .stage__toolbar { top: 10px; left: 10px; right: 10px; gap: 6px; }
+  .seg button { padding: 5px 10px; font-size: 12px; }
+  .legend { gap: 8px 12px; font-size: 12px; padding: 10px 12px; }
+  .row { flex-direction: column; gap: 0; }
+  .list-trip { grid-template-columns: 96px 1fr; gap: 10px; }
+  .auth__art { padding: 28px 20px; min-height: 0; }
+  .auth__form { padding: 24px 20px 40px; }
+  .trip-action { display: none; }
+  .mobile-book {
+    display: flex; align-items: center; gap: 12px; position: fixed; z-index: 29; left: 10px; right: 10px;
+    bottom: calc(66px + env(safe-area-inset-bottom)); padding: 10px 10px 10px 14px; border-radius: 16px;
+    background: rgba(20, 26, 38, .96); backdrop-filter: blur(12px); border: 1px solid var(--line); box-shadow: 0 16px 40px -10px #000;
+  }
+  .mobile-book div { flex: 1; min-width: 0; display: grid; }
+  .mobile-book b { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mobile-book small { color: var(--muted); font-size: 12px; }
+  .toast { bottom: 150px; width: calc(100% - 28px); text-align: center; }
 }

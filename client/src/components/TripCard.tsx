@@ -3,6 +3,7 @@ import { DRIVER_SEAT, allSeats } from '@shared/catalog';
 import type { TripView } from '@shared/types';
 import { CarView } from './CarView';
 import { NumberPlate } from './NumberPlate';
+import { CarPhotoThumb } from './CarPhotos';
 import { resolveCar, carTitle } from '../lib/carParts';
 import { initials, relative, rupees, when } from '../lib/format';
 import { tripSeatStates } from '../lib/seats';
@@ -35,6 +36,7 @@ export function TripCard({ trip }: { trip: TripView }) {
           {trip.status === 'full' ? <span className="tag tag--red">Full</span> : <span className="tag tag--green">{trip.seatsLeft} seat{trip.seatsLeft === 1 ? '' : 's'} left</span>}
         </div>
         <CarView model={model} paint={paint} interior={interior} detail="lite" orientation="horizontal" seats={tripSeatStates(trip, user, null)} />
+        <CarPhotoThumb model={model} ownPhoto={trip.car.photo} className="trip-card__photo" />
       </div>
       <div className="trip-card__body">
         <div className="trip-card__meta">

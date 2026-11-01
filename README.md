@@ -10,7 +10,9 @@ Riders — including other owners — browse open trips, look **inside the car**
 - **Car stage** — lift the roof (cabin ↔ exterior with sunroof / panoramic / glass roof and roof rails), day/night with headlamps and ambient lighting colours, 3D tilt, and doors that swing open when you hover a seat.
 - **Gender-aware seat booking** — occupied seats show a person (blue ♂ / pink ♀); hovering a seat tells you who you'd sit next to. Women drivers can publish **women-only** rides.
 - **Owner controls** — choose which seats to offer by tapping them on the car (e.g. keep the middle seat free), set price, notes, cancel trips.
-- Indian HSRP-style number plates, ₹ pricing, mobile layout (nose-up car on phones).
+- **Real photos** — each model's exterior and interior photos are looked up live from Wikipedia / Wikimedia Commons (freely licensed) and shown with author and licence credit, alongside the owner's own photo if uploaded. Results are cached in the browser; if Wikipedia can't be reached, the app keeps the to-scale drawing.
+- **Mobile-first** — bottom tab bar, nose-up car with large tap targets, sticky "Book seat" bar, horizontally scrolling filters.
+- Indian HSRP-style number plates, ₹ pricing.
 
 ## Run it
 
@@ -39,6 +41,7 @@ server/db.ts             JSON-file store (data/db.json, atomic writes)
 server/seed.ts           demo users, cars and trips
 client/src/lib/carGeometry.ts   turns mm dimensions into a top-down drawing plan
 client/src/components/CarView.tsx  the SVG car renderer (body, glass, cabin, seats, occupants)
+client/src/lib/carPhotos.ts     live Wikimedia photo lookup (generation hints per model in catalog `wiki`)
 client/src/components/CarStage.tsx parking-bay stage with roof / night / 3D / ambient controls
 client/src/pages/*       Find a ride, trip & seat picker, garage, add-car configurator, offer a ride, my trips, showroom
 ```

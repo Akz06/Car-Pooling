@@ -70,6 +70,8 @@ export interface CarModel {
   ambientLight: boolean;
   /** Brand colour used for the badge on the steering boss and UI accents. */
   brandColor: string;
+  /** Wikipedia article used to find real, freely-licensed photos; prefer = filename hints for the right generation. */
+  wiki: { article: string; prefer?: string[] };
   /** Full-width LED light bars, as on the real car. */
   lightBar?: 'front' | 'rear' | 'both';
   features: string[];
@@ -107,6 +109,7 @@ export const CATALOG: CarModel[] = [
     roofRails: false,
     ambientLight: false,
     brandColor: '#1d4ed8',
+    wiki: { article: 'Suzuki Swift', prefer: ['2024', '2023', 'fourth', '4th'] },
     features: ['9" SmartPlay Pro+', '6 airbags', 'Auto climate control', 'Rear AC vents'],
     paints: [
       { id: 'luster-blue', name: 'Luster Blue', hex: '#1f5fa8', finish: 'metallic' },
@@ -144,6 +147,7 @@ export const CATALOG: CarModel[] = [
     roofRails: true,
     ambientLight: true,
     brandColor: '#0b3d91',
+    wiki: { article: 'Hyundai Creta', prefer: ['2024', '2025', 'SU2', 'facelift'] },
     lightBar: 'both',
     features: ['Panoramic sunroof', 'Dual 10.25" curved displays', 'Level 2 ADAS', 'Ventilated front seats', 'Bose 8-speaker audio'],
     paints: [
@@ -182,6 +186,7 @@ export const CATALOG: CarModel[] = [
     roofRails: false,
     ambientLight: false,
     brandColor: '#c8102e',
+    wiki: { article: 'Honda City', prefer: ['2020', '2021', '2022', '2023', '2024', 'GN', 'fifth'] },
     features: ['Single-pane sunroof', 'Honda SENSING ADAS', 'LaneWatch camera', '506 L boot'],
     paints: [
       { id: 'platinum-white', name: 'Platinum White Pearl', hex: '#ecebe6', finish: 'pearl' },
@@ -218,6 +223,7 @@ export const CATALOG: CarModel[] = [
     roofRails: true,
     ambientLight: true,
     brandColor: '#1a3b8b',
+    wiki: { article: 'Tata Nexon', prefer: ['2023', '2024', '2025', 'facelift'] },
     lightBar: 'rear',
     features: ['5-star Bharat NCAP', '10.25" Harman infotainment', 'Ventilated seats', '360° camera'],
     paints: [
@@ -255,6 +261,7 @@ export const CATALOG: CarModel[] = [
     roofRails: true,
     ambientLight: true,
     brandColor: '#b40019',
+    wiki: { article: 'Mahindra XUV700', prefer: ['XUV700'] },
     lightBar: 'rear',
     features: ['Skyroof (panoramic)', 'Dual 10.25" HD screens', 'Sony 3D sound (12 speakers)', 'ADAS', 'Flush door handles'],
     paints: [
@@ -293,6 +300,7 @@ export const CATALOG: CarModel[] = [
     roofRails: false,
     ambientLight: true,
     brandColor: '#d71920',
+    wiki: { article: 'Toyota Innova', prefer: ['Crysta', 'AN140'] },
     features: ['2nd-row captain seats', 'Roof-mounted rear AC', 'Ambient roof lighting', '7 airbags'],
     paints: [
       { id: 'super-white', name: 'Super White', hex: '#f4f4f1', finish: 'solid' },
@@ -328,6 +336,7 @@ export const CATALOG: CarModel[] = [
     roofRails: false,
     ambientLight: false,
     brandColor: '#1d4ed8',
+    wiki: { article: 'Suzuki Ertiga', prefer: ['2018', '2019', '2020', '2021', '2022', '2023', 'second'] },
     features: ['Factory S-CNG', 'Roof-mounted rear AC', '60:40 split 2nd row', 'Reclining 3rd row'],
     paints: [
       { id: 'pearl-arctic-white', name: 'Pearl Arctic White', hex: '#eff0f0', finish: 'pearl' },
@@ -363,6 +372,7 @@ export const CATALOG: CarModel[] = [
     roofRails: true,
     ambientLight: true,
     brandColor: '#05141f',
+    wiki: { article: 'Kia Carens', prefer: ['2022', '2023', '2024', '2025', 'KY'] },
     lightBar: 'both',
     features: ['2nd-row captain seats', 'One-touch electric tumble', 'Bose 8-speaker audio', '64-colour ambient lighting'],
     paints: [
@@ -401,6 +411,7 @@ export const CATALOG: CarModel[] = [
     roofRails: true,
     ambientLight: true,
     brandColor: '#d71920',
+    wiki: { article: 'Toyota Fortuner', prefer: ['Legender', 'AN160', '2021', '2022', '2023', '2024'] },
     features: ['Ladder-frame 4x4', 'Kick-sensor power tailgate', 'Wireless charger', 'JBL 11-speaker audio'],
     paints: [
       { id: 'attitude-black', name: 'Attitude Black', hex: '#0f1012', finish: 'pearl' },
@@ -437,6 +448,7 @@ export const CATALOG: CarModel[] = [
     roofRails: false,
     ambientLight: true,
     brandColor: '#cc0000',
+    wiki: { article: 'Tesla Model Y', prefer: ['2025', 'Juniper'] },
     features: ['All-glass roof', '15.4" centre touchscreen', '8" rear screen', 'Ventilated front seats', '622 km WLTP range'],
     paints: [
       { id: 'pearl-white', name: 'Pearl White', hex: '#f2f2ef', finish: 'pearl' },
@@ -473,6 +485,7 @@ export const CATALOG: CarModel[] = [
     roofRails: false,
     ambientLight: true,
     brandColor: '#0b3d91',
+    wiki: { article: 'Hyundai Verna', prefer: ['2023', '2024', 'Verna', 'BN7'] },
     lightBar: 'both',
     features: ['Dual 10.25" panoramic display', 'Heated & ventilated seats', 'Level 2 ADAS', 'Switchable climate/media panel'],
     paints: [

@@ -6,6 +6,7 @@ import { api } from '../lib/api';
 import { resolveCar, carTitle } from '../lib/carParts';
 import { CarView } from '../components/CarView';
 import { NumberPlate } from '../components/NumberPlate';
+import { CarPhotoThumb } from '../components/CarPhotos';
 
 export function GaragePage() {
   const [cars, setCars] = useState<Car[] | null>(null);
@@ -39,8 +40,9 @@ export function GaragePage() {
           const { model, paint, interior } = resolveCar(c);
           return (
             <div key={c.id} className="garage-card">
-              <div className="garage-card__art">
+              <div className="garage-card__art" style={{ position: 'relative' }}>
                 <CarView model={model} paint={paint} interior={interior} mode="exterior" orientation="horizontal" detail="lite" />
+                <CarPhotoThumb model={model} ownPhoto={c.photo} className="trip-card__photo" />
               </div>
               <div className="garage-card__body">
                 <div className="trip-card__meta">

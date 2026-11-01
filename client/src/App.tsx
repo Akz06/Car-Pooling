@@ -11,6 +11,14 @@ import { CreateTripPage } from './pages/CreateTripPage';
 import { MyTripsPage } from './pages/MyTripsPage';
 import { ShowroomPage } from './pages/ShowroomPage';
 
+const NAV: [string, string, string][] = [
+  ['/', 'Find a ride', 'M10.5 4a6.5 6.5 0 1 0 4 11.6l4.2 4.2 1.4-1.4-4.2-4.2A6.5 6.5 0 0 0 10.5 4Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z'],
+  ['/trips/new', 'Offer a ride', 'M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z'],
+  ['/garage', 'My garage', 'M5 11 6.5 6.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11a2 2 0 0 1 2 2v4h-2v2h-2v-2H7v2H5v-2H3v-4a2 2 0 0 1 2-2Zm2.1 0h9.8l-1.2-4H8.3l-1.2 4ZM6.5 13a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm11 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z'],
+  ['/me/trips', 'My trips', 'M7 3h2v2h6V3h2v2h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2V3Zm-2 8v8h14v-8H5Z'],
+  ['/showroom', 'Showroom', 'M4 5h16v11H4V5Zm2 2v7h12V7H6Zm3 11h6v2H9v-2Z'],
+];
+
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, ready } = useAuth();
   const loc = useLocation();
@@ -33,12 +41,13 @@ export function App() {
             </span>
             Seat<b>Share</b>
           </NavLink>
-          <nav className="nav">
-            <NavLink to="/" end>Find a ride</NavLink>
-            <NavLink to="/trips/new">Offer a ride</NavLink>
-            <NavLink to="/garage">My garage</NavLink>
-            <NavLink to="/me/trips">My trips</NavLink>
-            <NavLink to="/showroom">Showroom</NavLink>
+          <nav className="nav" aria-label="Main">
+            {NAV.map(([to, label, icon]) => (
+              <NavLink key={to} to={to} end={to === '/'}>
+                <svg className="nav__icon" viewBox="0 0 24 24" aria-hidden><path d={icon} /></svg>
+                <span>{label}</span>
+              </NavLink>
+            ))}
           </nav>
           <div className="topbar__user">
             {user ? (

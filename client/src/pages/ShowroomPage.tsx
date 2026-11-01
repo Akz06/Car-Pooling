@@ -3,6 +3,7 @@ import { CATALOG, MAKES, allSeats } from '@shared/catalog';
 import { CarStage } from '../components/CarStage';
 import { CarView } from '../components/CarView';
 import { PaintSwatches, TrimSwatches } from '../components/Swatches';
+import { CarGallery } from '../components/CarPhotos';
 
 export function ShowroomPage() {
   const [modelId, setModelId] = useState(CATALOG[0].id);
@@ -46,6 +47,7 @@ export function ShowroomPage() {
         <aside className="panel spec">
           <h2>{model.make} {model.model}</h2>
           <p className="muted">{model.generation}</p>
+          <CarGallery model={model} />
           <h4>Paint — {paint.name}</h4>
           <PaintSwatches paints={model.paints} value={paint.id} onChange={setPaintId} />
           <h4>Interior</h4>

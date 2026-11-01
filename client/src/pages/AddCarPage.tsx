@@ -6,6 +6,7 @@ import { CarStage } from '../components/CarStage';
 import { CarView } from '../components/CarView';
 import { NumberPlate } from '../components/NumberPlate';
 import { PaintSwatches, TrimSwatches } from '../components/Swatches';
+import { CarGallery } from '../components/CarPhotos';
 
 /** Downscale a photo on the client so we never upload multi-MB camera images. */
 function resizeImage(file: File, max = 1280): Promise<string> {
@@ -75,6 +76,8 @@ export function AddCarPage() {
           <div className="steps">{[0, 1, 2].map((i) => <span key={i} className={i <= step ? 'on' : ''} />)}</div>
           {step === 0 && (
             <>
+              <h3 style={{ marginBottom: 8 }}>{model.make} {model.model} <small className="muted">· {model.generation}</small></h3>
+              <CarGallery model={model} />
               {MAKES.map((make) => (
                 <div key={make}>
                   <h4>{make}</h4>
