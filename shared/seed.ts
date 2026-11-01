@@ -1,14 +1,12 @@
-import crypto from 'node:crypto';
-import type { Car, Gender, Trip } from '../shared/types.ts';
-import { hashPassword } from './app.ts';
-import type { Db, UserRecord } from './db.ts';
+import type { Car, Gender, Trip } from './types.ts';
+import type { Crypto, Store, UserRecord } from './core.ts';
 
 /** Demo community so the app is alive on first launch. Password for all: demo123 */
-export function seed(db: Db) {
-  if (db.data.users.length) return;
+export function seed(db: Store, c: Crypto) {
+  if (db.data.users.length) return false;
   const now = Date.now();
   const iso = (hours: number) => new Date(Math.ceil((now + hours * 3600_000) / 900_000) * 900_000).toISOString();
-  const rid = (p: string) => `${p}_${crypto.randomBytes(6).toString('hex')}`;
+  const rid = c.id;
 
   const people: [string, string, Gender, number][] = [
     ['Priya Sharma', 'priya@demo.in', 'F', 4.9],
@@ -21,7 +19,7 @@ export function seed(db: Db) {
     ['Karthik Rao', 'karthik@demo.in', 'M', 4.9],
   ];
   const users: UserRecord[] = people.map(([name, email, gender, rating]) => {
-    const { hash, salt } = hashPassword('demo123');
+    const { hash, salt } = c.hash('demo123');
     return { id: rid('usr'), name, email, gender, rating, passwordHash: hash, salt, createdAt: new Date().toISOString() };
   });
   const [priya, arjun, kavya, rohan, ananya, vikram, meera, karthik] = users;
@@ -67,5 +65,5 @@ export function seed(db: Db) {
     d.cars.push(...cars);
     d.trips.push(...trips);
   });
-  console.log('Seeded demo data — sign in as priya@demo.in / demo123 (or any *@demo.in)');
+  return true;
 }

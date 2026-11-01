@@ -19,6 +19,15 @@ const NAV: [string, string, string][] = [
   ['/showroom', 'Showroom', 'M4 5h16v11H4V5Zm2 2v7h12V7H6Zm3 11h6v2H9v-2Z'],
 ];
 
+function DemoBanner() {
+  return (
+    <div className="demo-banner">
+      Preview — runs fully in your browser; data stays on this device.
+      <button onClick={async () => { (await import('./demo/backend')).resetDemo(); location.reload(); }}>Reset</button>
+    </div>
+  );
+}
+
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, ready } = useAuth();
   const loc = useLocation();
@@ -33,6 +42,7 @@ export function App() {
   const bare = loc.pathname === '/login';
   return (
     <div className="app">
+      {import.meta.env.VITE_DEMO && <DemoBanner />}
       {!bare && (
         <header className="topbar">
           <NavLink to="/" className="brand">

@@ -31,14 +31,20 @@ npm run build && npm start   # serves the built app + API on :4000
 
 Other scripts: `npm test` (API tests), `npm run typecheck`.
 
+### Preview on your phone
+
+- **Same Wi-Fi:** `npm run dev -- --host`, then open the `Network:` URL Vite prints (e.g. `http://192.168.1.20:5173`) on your phone.
+- **No server at all:** `npm run build:demo` produces `dist-demo/`, a self-contained build where the backend rules (`shared/core.ts`) run in the browser and data is kept in localStorage. Host it on any static host (GitHub Pages, Netlify, an artifact page). Real Wikimedia photos still load wherever outside images are allowed.
+
 ## Structure
 
 ```
 shared/catalog.ts        real car catalogue: dimensions, seat rows, paints, trims, cabin features
+shared/core.ts           all booking rules (used by the server and the in-browser demo)
+shared/seed.ts           demo users, cars and trips
 shared/types.ts          API types
-server/app.ts            Express API (auth, cars, trips, seat booking rules)
+server/app.ts            Express routes over shared/core.ts
 server/db.ts             JSON-file store (data/db.json, atomic writes)
-server/seed.ts           demo users, cars and trips
 client/src/lib/carGeometry.ts   turns mm dimensions into a top-down drawing plan
 client/src/components/CarView.tsx  the SVG car renderer (body, glass, cabin, seats, occupants)
 client/src/lib/carPhotos.ts     live Wikimedia photo lookup (generation hints per model in catalog `wiki`)

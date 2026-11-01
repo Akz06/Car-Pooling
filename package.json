@@ -9,6 +9,7 @@
     "dev:api": "tsx watch server/index.ts",
     "dev:web": "vite",
     "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "build:demo": "vite build --mode demo",
     "start": "NODE_ENV=production tsx server/index.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "tsx --test server/*.test.ts"

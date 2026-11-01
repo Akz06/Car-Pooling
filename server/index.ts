@@ -1,13 +1,13 @@
 import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createApp } from './app.ts';
+import { createApp, nodeCrypto } from './app.ts';
 import { Db } from './db.ts';
-import { seed } from './seed.ts';
+import { seed } from '../shared/seed.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const db = new Db(process.env.DB_FILE ?? path.join(root, 'data', 'db.json'));
-seed(db);
+if (seed(db, nodeCrypto)) console.log('Seeded demo data — sign in as priya@demo.in / demo123 (or any *@demo.in)');
 
 const app = createApp(db);
 

@@ -22,6 +22,7 @@ export function TripPage() {
   const [hover, setHover] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState('');
+  const [confirmCancel, setConfirmCancel] = useState(false);
 
   useEffect(() => {
     api.trip(id!).then(setTrip).catch((e) => setError(e.message));
@@ -163,7 +164,10 @@ export function TripPage() {
             <div style={{ marginTop: 14 }} className={showMobileBook ? 'trip-action' : undefined}>
               {isOwner ? (
                 trip.status === 'open' || trip.status === 'full' ? (
-                  <button className="btn btn--danger btn--block" disabled={busy} onClick={() => confirm('Cancel this trip for everyone?') && act(() => api.cancel(trip.id), 'Trip cancelled')}>Cancel trip</button>
+                  <button className="btn btn--danger btn--block" disabled={busy} onBlur={() => setConfirmCancel(false)}
+                    onClick={() => (confirmCancel ? act(() => api.cancel(trip.id), 'Trip cancelled') : setConfirmCancel(true))}>
+                    {confirmCancel ? 'Tap again to cancel for everyone' : 'Cancel trip'}
+                  </button>
                 ) : null
               ) : myBooking ? (
                 <button className="btn btn--block" disabled={busy || trip.status === 'departed'} onClick={() => act(() => api.leave(trip.id), 'Seat released')}>

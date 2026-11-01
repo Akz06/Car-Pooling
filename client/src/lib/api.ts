@@ -12,6 +12,12 @@ export class ApiError extends Error {
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const token = getToken();
+  if (import.meta.env.VITE_DEMO) {
+    const { demoRequest } = await import('../demo/backend');
+    const r = await demoRequest(method, path, body, token);
+    if (r.status >= 400) throw new ApiError(r.status, (r.data as { error: string }).error);
+    return r.data as T;
+  }
   const res = await fetch(`/api${path}`, {
     method,
     headers: { ...(body ? { 'content-type': 'application/json' } : {}), ...(token ? { authorization: `Bearer ${token}` } : {}) },

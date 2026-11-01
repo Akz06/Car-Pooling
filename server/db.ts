@@ -1,38 +1,20 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import type { Car, Gender, Trip } from '../shared/types.ts';
+import { emptyDb, type DbShape, type Store } from '../shared/core.ts';
 
-export interface UserRecord {
-  id: string;
-  name: string;
-  email: string;
-  gender: Gender;
-  passwordHash: string;
-  salt: string;
-  rating: number;
-  createdAt: string;
-}
-
-export interface DbShape {
-  users: UserRecord[];
-  sessions: { token: string; userId: string; createdAt: string }[];
-  cars: Car[];
-  trips: Trip[];
-}
-
-const empty = (): DbShape => ({ users: [], sessions: [], cars: [], trips: [] });
+export type { DbShape, UserRecord } from '../shared/core.ts';
 
 /**
  * Tiny JSON-file database. All mutations go through `write()`, which
  * persists atomically (write temp file + rename) so a crash never leaves
  * a half-written file behind.
  */
-export class Db {
+export class Db implements Store {
   data: DbShape;
   constructor(private file: string | null) {
-    this.data = empty();
+    this.data = emptyDb();
     if (file && fs.existsSync(file)) {
-      this.data = { ...empty(), ...JSON.parse(fs.readFileSync(file, 'utf8')) };
+      this.data = { ...emptyDb(), ...JSON.parse(fs.readFileSync(file, 'utf8')) };
     }
   }
 

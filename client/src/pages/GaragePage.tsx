@@ -11,10 +11,11 @@ import { CarPhotoThumb } from '../components/CarPhotos';
 export function GaragePage() {
   const [cars, setCars] = useState<Car[] | null>(null);
   const [error, setError] = useState('');
+  const [armed, setArmed] = useState<string | null>(null);
   useEffect(() => { api.myCars().then(setCars).catch((e) => setError(e.message)); }, []);
 
   const remove = async (c: Car) => {
-    if (!confirm(`Remove ${c.plate} from your garage?`)) return;
+    if (armed !== c.id) return setArmed(c.id);
     try {
       await api.deleteCar(c.id);
       setCars((cs) => cs!.filter((x) => x.id !== c.id));
@@ -55,7 +56,7 @@ export function GaragePage() {
                 <span className="muted" style={{ fontSize: 13 }}>{paint.name} · {interior.name} · {allSeats(model).length} seats</span>
                 <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                   <Link to={`/trips/new?car=${c.id}`} className="btn btn--sm btn--primary">Offer a ride</Link>
-                  <button className="btn btn--sm btn--danger" onClick={() => remove(c)}>Remove</button>
+                  <button className="btn btn--sm btn--danger" onClick={() => remove(c)} onBlur={() => setArmed(null)}>{armed === c.id ? 'Tap again to remove' : 'Remove'}</button>
                 </div>
               </div>
             </div>
