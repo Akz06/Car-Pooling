@@ -1,0 +1,20 @@
+# One-click deploy: https://render.com/deploy?repo=https://github.com/Akz06/Car-Pooling
+services:
+  - type: web
+    name: seatshare
+    runtime: node
+    plan: starter          # always on (the free plan sleeps and has no disk)
+    region: singapore      # closest Render region to India
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true       # every push to main redeploys
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATA_DIR
+        value: /var/data
+    disk:
+      name: seatshare-data
+      mountPath: /var/data # bookings, accounts and the photo cache survive redeploys
+      sizeGB: 1

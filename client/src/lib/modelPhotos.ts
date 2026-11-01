@@ -2,6 +2,17 @@ import type { CarModel } from '@shared/catalog';
 import { MODEL_PHOTOS, SEAT_CATEGORIES, defaultPins, type ModelPhoto, type PhotoCategory } from '@shared/photos';
 import type { CarPhotos } from './carPhotos';
 
+/** With a real server, photos go through its same-origin cache (/api/img); static builds load them directly. */
+export function viaCache(url: string) {
+  if (import.meta.env.VITE_DEMO) return url;
+  try {
+    const h = new URL(url).hostname;
+    return h === 'upload.wikimedia.org' || h === 'stimg.cardekho.com' ? `/api/img?u=${encodeURIComponent(url)}` : url;
+  } catch {
+    return url;
+  }
+}
+
 export interface GalleryPhoto extends ModelPhoto {
   credit?: { text: string; href?: string };
 }
@@ -9,11 +20,11 @@ export interface GalleryPhoto extends ModelPhoto {
 /** Portal photos when we have them, otherwise the live Wikimedia exterior/interior. */
 export function galleryPhotos(model: CarModel, wiki: CarPhotos | null): GalleryPhoto[] {
   const own = MODEL_PHOTOS[model.id];
-  if (own?.length) return own.map((p) => ({ ...p, credit: p.source ? { text: `Photo: ${p.source}` } : undefined }));
+  if (own?.length) return own.map((p) => ({ ...p, url: viaCache(p.url), credit: p.source ? { text: `Photo: ${p.source}` } : undefined }));
   const out: GalleryPhoto[] = [];
   const credit = (p: NonNullable<CarPhotos['exterior']>) => ({ text: `📷 ${p.artist} · ${p.license} · Wikimedia Commons`, href: p.page });
-  if (wiki?.exterior) out.push({ url: wiki.exterior.src, category: 'exterior', caption: `${model.make} ${model.model} Front Quarter View`, credit: credit(wiki.exterior) });
-  if (wiki?.interior) out.push({ url: wiki.interior.src, category: 'dashboard', caption: `${model.make} ${model.model} Dashboard`, credit: credit(wiki.interior) });
+  if (wiki?.exterior) out.push({ url: viaCache(wiki.exterior.src), category: 'exterior', caption: `${model.make} ${model.model} Front Quarter View`, credit: credit(wiki.exterior) });
+  if (wiki?.interior) out.push({ url: viaCache(wiki.interior.src), category: 'dashboard', caption: `${model.make} ${model.model} Dashboard`, credit: credit(wiki.interior) });
   return out;
 }
 
@@ -29,7 +40,7 @@ export function seatPhotos(model: CarModel) {
     const row = rowForCategory(model, c);
     const photo = own.find((p) => p.category === c);
     if (!row || !photo) return [];
-    return [{ category: c, photo, pins: { ...defaultPins(c, row.seats), ...photo.pins } }];
+    return [{ category: c, photo: { ...photo, url: viaCache(photo.url) }, pins: { ...defaultPins(c, row.seats), ...photo.pins } }];
   });
 }
 

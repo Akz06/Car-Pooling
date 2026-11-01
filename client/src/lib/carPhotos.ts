@@ -1,3 +1,4 @@
+import { viaCache } from './modelPhotos';
 import type { CarModel } from '@shared/catalog';
 
 /**
@@ -25,7 +26,7 @@ export interface CarPhotos {
 }
 
 const API = 'https://en.wikipedia.org/w/api.php';
-const CACHE_KEY = 'seatshare.photos.v1';
+const CACHE_KEY = 'seatshare.photos.v2';
 const TTL = 7 * 24 * 3600_000;
 
 const SKIP = /\.(svg|gif|webm|ogv|tif)$|logo|emblem|badge|icon|map|chart|crash|ncap|sales|commons-|wiki/i;
@@ -91,7 +92,7 @@ async function lookup(model: CarModel): Promise<CarPhotos> {
     if (!ii) continue;
     const meta = ii.extmetadata ?? {};
     byTitle.set(p.title, {
-      src: ii.thumburl ?? ii.url,
+      src: viaCache(ii.thumburl ?? ii.url),
       full: ii.url,
       page: ii.descriptionurl,
       artist: stripHtml(meta.Artist?.value) || 'Unknown author',

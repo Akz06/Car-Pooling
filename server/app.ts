@@ -14,7 +14,8 @@ export const nodeCrypto: Crypto = {
 };
 
 /** Thin HTTP layer — all rules live in shared/core.ts. */
-export function createApp(db: Db) {
+/** `extend` adds routes before the API's 404 handler (e.g. the image cache). */
+export function createApp(db: Db, extend?: (app: express.Express) => void) {
   const core = createCore(db, nodeCrypto);
   const app = express();
   app.use(express.json({ limit: '3mb' }));
@@ -40,6 +41,9 @@ export function createApp(db: Db) {
   app.post('/api/trips/:id/book', (req, res) => res.json(core.book(me(req), req.params.id, req.body?.seatId)));
   app.delete('/api/trips/:id/book', (req, res) => res.json(core.leave(me(req), req.params.id)));
   app.post('/api/trips/:id/cancel', (req, res) => res.json(core.cancel(me(req), req.params.id)));
+
+  app.get('/api/health', (_req, res) => res.json({ ok: true }));
+  extend?.(app);
 
   app.use('/api', (_req, _res, next) => next(new HttpError(404, 'Not found')));
 

@@ -37,6 +37,20 @@ npm run build && npm start   # serves the built app + API on :4000
 
 Other scripts: `npm test` (API tests), `npm run typecheck`.
 
+### Hosting with a real server (recommended)
+
+GitHub Pages can only serve files, so each phone keeps its own bookings. Running the server gives everyone
+the same live trips and seats, and serves car photos from its own cache.
+
+**Render (one click):** [Deploy to Render](https://render.com/deploy?repo=https://github.com/Akz06/Car-Pooling) — uses `render.yaml`:
+Starter plan (always on), Singapore region, 1 GB disk at `/var/data` for accounts, bookings and the photo cache,
+health check `/api/health`, auto-deploy on every push to `main`.
+
+**Anywhere else:** the `Dockerfile` runs on Railway, Fly.io or a VPS. Mount a volume at `/data` (set `DATA_DIR` to change it).
+
+Server features in production: gzip, year-long caching of hashed assets, `/api/img` same-origin photo cache
+(Wikimedia, CarDekho), clean URLs (no `#/`).
+
 ### GitHub Pages
 
 `.github/workflows/pages.yml` runs the type-check and tests, then `npm run build:pages`, and deploys on every push to `main`.
