@@ -207,7 +207,7 @@ export function TripPage() {
           </div>
 
           <div className="panel">
-            <h4 style={{ marginTop: 0 }}>The car</h4>
+            <div className="trip-card__meta"><h4 style={{ margin: 0 }}>The car</h4><Link to={`/cars/${model.id}`} className="link">All photos →</Link></div>
             <CarGallery model={model} ownPhoto={trip.car.photo} />
             <b>{trip.car.nickname ? `“${trip.car.nickname}” · ` : ''}{trip.car.year} {carTitle(model)}</b>
             <dl className="specs" style={{ margin: '10px 0 0' }}>

@@ -10,6 +10,7 @@ import { AddCarPage } from './pages/AddCarPage';
 import { CreateTripPage } from './pages/CreateTripPage';
 import { MyTripsPage } from './pages/MyTripsPage';
 import { ShowroomPage } from './pages/ShowroomPage';
+import { CarGalleryPage } from './pages/CarGalleryPage';
 
 const NAV: [string, string, string][] = [
   ['/', 'Find a ride', 'M10.5 4a6.5 6.5 0 1 0 4 11.6l4.2 4.2 1.4-1.4-4.2-4.2A6.5 6.5 0 0 0 10.5 4Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z'],
@@ -77,6 +78,7 @@ export function App() {
           <Route path="/login" element={<AuthPage />} />
           <Route path="/" element={<TripsPage />} />
           <Route path="/showroom" element={<ShowroomPage />} />
+          <Route path="/cars/:modelId" element={<CarGalleryPage />} />
           <Route path="/trips/new" element={<RequireAuth><CreateTripPage /></RequireAuth>} />
           <Route path="/trips/:id" element={<TripPage />} />
           <Route path="/garage" element={<RequireAuth><GaragePage /></RequireAuth>} />

@@ -376,3 +376,44 @@ h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: v
   .stage__cams button { padding: 6px 10px; }
   .stage__hint { display: none; }
 }
+
+/* ---------- portal-style gallery ---------- */
+.link { color: var(--accent); font-size: 13px; font-weight: 600; }
+.gallery-page { max-width: 1000px; margin: 0 auto; }
+.gallery-page__head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.gallery-page__head h1 { margin: 0; font-size: clamp(22px, 3vw, 30px); }
+.gtabs { display: flex; gap: 26px; border-bottom: 1px solid var(--line); margin-bottom: 14px; overflow-x: auto; }
+.gtabs button { background: none; border: 0; color: var(--muted); font: inherit; font-weight: 700; font-size: 16px; padding: 12px 0; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; }
+.gtabs button.on { color: var(--text); border-color: #f4602b; }
+.gchips { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 12px; scrollbar-width: none; }
+.gchips button { flex: none; border: 1.5px solid #cbd5e1; background: transparent; color: var(--text); border-radius: 999px; padding: 8px 16px; font: inherit; font-size: 14px; cursor: pointer; }
+.gchips button.on { border-color: #f4602b; color: #f4602b; }
+.viewer__frame { position: relative; background: #000; border-radius: 14px; overflow: hidden; aspect-ratio: 3 / 2; display: grid; place-items: center; touch-action: pan-y; }
+.viewer__frame img { width: 100%; height: 100%; object-fit: cover; display: block; animation: fade-in .3s ease; }
+.viewer__frame--paint { background: linear-gradient(180deg, #34373d, #26292e); padding: 4%; }
+.viewer__frame--paint svg { width: 100%; height: auto; }
+.viewer__frame--3d { aspect-ratio: auto; height: clamp(380px, 60vh, 600px); display: block; }
+.viewer__broken { color: var(--muted); }
+.viewer__nav { position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 64px; border: 0; background: rgba(0, 0, 0, .45); color: #fff; font-size: 34px; line-height: 1; cursor: pointer; }
+.viewer__nav--prev { left: 0; border-radius: 0 10px 10px 0; }
+.viewer__nav--next { right: 0; border-radius: 10px 0 0 10px; }
+.viewer__caption { display: flex; justify-content: space-between; gap: 12px; padding: 12px 2px 4px; font-size: 17px; }
+.viewer__strip { display: flex; gap: 10px; overflow-x: auto; padding: 12px 0 4px; scrollbar-width: none; }
+.viewer__strip button { flex: none; width: 110px; aspect-ratio: 3 / 2; padding: 0; border: 2px solid transparent; border-radius: 8px; overflow: hidden; background: #111; cursor: pointer; opacity: .75; }
+.viewer__strip button.on { border-color: #f4602b; opacity: 1; }
+.viewer__strip img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ---------- seat picking on real photos ---------- */
+.seatphoto { position: relative; }
+.seatphoto__frame { position: relative; aspect-ratio: 3 / 2; background: #000; }
+.seatphoto__frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.seatphoto__pin { position: absolute; transform: translate(-50%, -50%); min-width: 34px; height: 34px; font-size: 17px; }
+.seatphoto__pin em { top: 36px; }
+.seatphoto__tabs { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); }
+@media (max-width: 640px) {
+  .gtabs { gap: 20px; }
+  .gtabs button { font-size: 15px; }
+  .viewer__frame { border-radius: 0; margin: 0 -14px; }
+  .viewer__strip button { width: 84px; }
+  .seatphoto__pin { min-width: 30px; height: 30px; font-size: 15px; }
+}

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { CATALOG, MAKES, allSeats } from '@shared/catalog';
 import { CarStage } from '../components/CarStage';
@@ -46,6 +47,7 @@ export function ShowroomPage() {
         <CarStage model={model} paint={paint} interior={interior} showLabels />
         <aside className="panel spec">
           <h2>{model.make} {model.model}</h2>
+          <Link to={`/cars/${model.id}`} className="link">Exterior · Interior · Colours · 3D View →</Link>
           <p className="muted">{model.generation}</p>
           <CarGallery model={model} />
           <h4>Paint — {paint.name}</h4>

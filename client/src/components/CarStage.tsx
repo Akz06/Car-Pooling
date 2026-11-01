@@ -1,5 +1,7 @@
 import { Component, lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { CarView, type CarViewProps } from './CarView';
+import { SeatPhotoPicker } from './SeatPhotoPicker';
+import { hasSeatPhotos } from '../lib/modelPhotos';
 import type { CameraPreset } from '../three/Scene3D';
 
 // three.js is big: only load it when a 3D stage is actually shown.
@@ -57,7 +59,9 @@ export function CarStage({
 }: StageProps) {
   const narrow = useNarrow();
   const orientation = narrow ? 'vertical' : preferred;
-  const [kind, setKind] = useState<'3d' | 'map'>(webglOk ? '3d' : 'map');
+  const photosAvailable = hasSeatPhotos(view.model);
+  const [kind, setKind] = useState<'3d' | 'photo' | 'map'>(webglOk ? '3d' : 'map');
+  const shownKind = kind === 'photo' && !photosAvailable ? (webglOk ? '3d' : 'map') : kind;
   const [mode, setMode] = useState<'cabin' | 'exterior'>(reveal ? 'exterior' : initialMode);
   const [preset, setPreset] = useState<CameraPreset>(reveal || initialMode === 'exterior' ? 'front' : 'top');
   const [night, setNight] = useState(false);
@@ -85,24 +89,25 @@ export function CarStage({
   );
 
   return (
-    <div className={`stage ${night ? 'stage--night' : ''} ${tilt && kind === 'map' ? 'stage--tilt' : ''} stage--${orientation} stage--${kind}`}>
+    <div className={`stage ${night ? 'stage--night' : ''} ${tilt && kind === 'map' ? 'stage--tilt' : ''} stage--${orientation} stage--${shownKind}`}>
       <div className="stage__toolbar">
-        {webglOk && (
+        {(webglOk || photosAvailable) && (
           <div className="seg">
-            <button className={kind === '3d' ? 'on' : ''} onClick={() => setKind('3d')}>3D</button>
-            <button className={kind === 'map' ? 'on' : ''} onClick={() => setKind('map')}>Seat map</button>
+            {webglOk && <button className={shownKind === '3d' ? 'on' : ''} onClick={() => setKind('3d')}>3D</button>}
+            {photosAvailable && <button className={shownKind === 'photo' ? 'on' : ''} onClick={() => setKind('photo')}>Photos</button>}
+            <button className={shownKind === 'map' ? 'on' : ''} onClick={() => setKind('map')}>Seat map</button>
           </div>
         )}
-        <div className="seg">
+        {shownKind !== 'photo' && <div className="seg">
           <button className={mode === 'cabin' ? 'on' : ''} onClick={() => setRoof('cabin')}>Cabin</button>
           <button className={mode === 'exterior' ? 'on' : ''} onClick={() => setRoof('exterior')}>Exterior</button>
-        </div>
+        </div>}
         <div className="seg">
           <button className={!night ? 'on' : ''} onClick={() => setNight(false)} title="Daylight">☀︎</button>
           <button className={night ? 'on' : ''} onClick={() => setNight(true)} title="Night — headlamps & ambient lighting">☾</button>
         </div>
-        {kind === 'map' && <button className={`chip ${tilt ? 'chip--on' : ''}`} onClick={() => setTilt((t) => !t)}>Tilt</button>}
-        {kind === 'map' && night && view.model.ambientLight && (
+        {shownKind === 'map' && <button className={`chip ${tilt ? 'chip--on' : ''}`} onClick={() => setTilt((t) => !t)}>Tilt</button>}
+        {shownKind === 'map' && night && view.model.ambientLight && (
           <div className="ambient-picker" title="Ambient lighting">
             {AMBIENT.map((c) => (
               <button key={c} style={{ background: c }} className={c === ambient ? 'on' : ''} onClick={() => setAmbient(c)} aria-label={`Ambient ${c}`} />
@@ -111,7 +116,9 @@ export function CarStage({
         )}
         {toolbarExtra}
       </div>
-      {kind === '3d' ? (
+      {shownKind === 'photo' ? (
+        <SeatPhotoPicker model={view.model} seats={view.seats ?? {}} onSeatClick={view.onSeatClick} onSeatHover={view.onSeatHover} />
+      ) : shownKind === '3d' ? (
         <div className="stage__3d">
           <GlBoundary fallback={map}>
             <Suspense fallback={<div className="stage__loading">Opening the showroom…</div>}>
