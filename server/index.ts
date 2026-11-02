@@ -23,6 +23,26 @@ if (process.env.SEED_DEMO === '1') {
   if (removed) console.log(`Removed ${removed} demo users and their cars, trips and bookings`);
 }
 
+// Owner password reset (no email service yet): set RESET_EMAIL and RESET_PASSWORD on the host,
+// let it redeploy once, then delete both variables.
+if (process.env.RESET_EMAIL && process.env.RESET_PASSWORD) {
+  const email = process.env.RESET_EMAIL.trim().toLowerCase();
+  const password = process.env.RESET_PASSWORD;
+  const user = db.data.users.find((u) => u.email === email);
+  if (!user) console.warn(`Password reset: no account with email ${email}`);
+  else if (password.length < 6) console.warn('Password reset: RESET_PASSWORD must be at least 6 characters');
+  else {
+    const { hash, salt } = nodeCrypto.hash(password);
+    db.write((d) => {
+      const u = d.users.find((x) => x.id === user.id)!;
+      u.passwordHash = hash;
+      u.salt = salt;
+      d.sessions = d.sessions.filter((sess) => sess.userId !== user.id); // sign out everywhere
+    });
+    console.log(`Password reset for ${email} — now remove RESET_EMAIL and RESET_PASSWORD from the variables.`);
+  }
+}
+
 const app = createApp(db, (a) => imageCache(a, path.join(dataDir, 'img-cache')));
 app.set('trust proxy', 1);
 
