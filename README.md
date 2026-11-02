@@ -46,7 +46,11 @@ the same live trips and seats, and serves car photos from its own cache.
 Starter plan (always on), Singapore region, 1 GB disk at `/var/data` for accounts, bookings and the photo cache,
 health check `/api/health`, auto-deploy on every push to `main`.
 
-**Anywhere else:** the `Dockerfile` runs on Railway, Fly.io or a VPS. Mount a volume at `/data` (set `DATA_DIR` to change it).
+**Railway:** deploys from `railway.json` + `Dockerfile`. Add a PostgreSQL database in the same project and give the
+app service the variable `DATABASE_URL = ${{Postgres.DATABASE_URL}}`; accounts, cars, trips and bookings are then stored
+in Postgres (table `seatshare_state`). Generate a domain under the service's *Settings → Networking*.
+
+**Anywhere else:** the `Dockerfile` runs on Fly.io or a VPS. Set `DATABASE_URL`, or mount a volume at `/data` for the JSON-file store.
 
 Server features in production: gzip, year-long caching of hashed assets, `/api/img` same-origin photo cache
 (Wikimedia, CarDekho), clean URLs (no `#/`).

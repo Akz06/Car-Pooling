@@ -4,13 +4,17 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createApp, nodeCrypto } from './app.ts';
 import { Db } from './db.ts';
+import { openPgStore } from './pgStore.ts';
 import { imageCache } from './images.ts';
 import { seed } from '../shared/seed.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-// DATA_DIR points at a persistent disk in production (e.g. /var/data on Render).
 const dataDir = process.env.DATA_DIR ?? path.join(root, 'data');
-const db = new Db(process.env.DB_FILE ?? path.join(dataDir, 'db.json'));
+
+// DATABASE_URL (e.g. Railway Postgres) → data in Postgres; otherwise a JSON file in DATA_DIR.
+const pgStore = process.env.DATABASE_URL ? await openPgStore(process.env.DATABASE_URL) : null;
+const db = pgStore ?? new Db(process.env.DB_FILE ?? path.join(dataDir, 'db.json'));
+console.log(pgStore ? 'Storage: PostgreSQL' : `Storage: JSON file in ${dataDir}`);
 if (seed(db, nodeCrypto)) console.log('Seeded demo data — sign in as priya@demo.in / demo123 (or any *@demo.in)');
 
 const app = createApp(db, (a) => imageCache(a, path.join(dataDir, 'img-cache')));
@@ -30,4 +34,12 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const port = Number(process.env.PORT ?? 4000);
-app.listen(port, () => console.log(`SeatShare on http://localhost:${port}`));
+const server = app.listen(port, () => console.log(`SeatShare on http://localhost:${port}`));
+
+// Finish pending database writes before the platform stops the container.
+const shutdown = () => {
+  server.close();
+  void (pgStore?.close() ?? Promise.resolve()).finally(() => process.exit(0));
+};
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);

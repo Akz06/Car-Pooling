@@ -2,7 +2,7 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import crypto from 'node:crypto';
 import { CATALOG } from '../shared/catalog.ts';
 import { HttpError, createCore, tripStatus, type Crypto } from '../shared/core.ts';
-import type { Db } from './db.ts';
+import type { Store } from '../shared/core.ts';
 
 export { tripStatus };
 
@@ -15,7 +15,7 @@ export const nodeCrypto: Crypto = {
 
 /** Thin HTTP layer — all rules live in shared/core.ts. */
 /** `extend` adds routes before the API's 404 handler (e.g. the image cache). */
-export function createApp(db: Db, extend?: (app: express.Express) => void) {
+export function createApp(db: Store, extend?: (app: express.Express) => void) {
   const core = createCore(db, nodeCrypto);
   const app = express();
   app.use(express.json({ limit: '3mb' }));
