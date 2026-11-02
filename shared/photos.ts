@@ -7,7 +7,7 @@
  * so riders can pick a seat on the real interior.
  */
 
-import data from './photos.data.json';
+import seatShots from './seat-shots.json';
 
 export type PhotoCategory =
   | 'exterior' | 'dashboard' | 'steering' | 'front-seats' | 'rear-seats' | 'third-row' | 'boot' | 'colour';
@@ -28,10 +28,20 @@ export const SEAT_CATEGORIES: PhotoCategory[] = ['front-seats', 'rear-seats', 't
 
 export interface ModelPhoto {
   url: string;
+  /** Small version for thumbnail strips. */
+  thumb?: string;
+  /** Portal tab: exterior, interior or colour. */
+  group?: 'exterior' | 'interior' | 'colour';
+  /** Portal section inside the tab, e.g. "Looks", "Lights", "Dashboard", "Seats". */
+  section?: string;
   category: PhotoCategory;
   caption: string;
-  /** For colour photos: which catalog paint this is. */
+  /** For colour photos: which catalog paint this is (when it matches). */
   paintId?: string;
+  /** For colour photos: the shade, from the photo's file name. */
+  hex?: string;
+  /** This photo is the one used to pick seats in that row. */
+  seatShot?: 'front-seats' | 'rear-seats' | 'third-row';
   /** Override default seat pin positions for this photo: seatId → [x, y]. */
   pins?: Record<string, [number, number]>;
   source?: string;
@@ -57,4 +67,5 @@ export function defaultPins(category: PhotoCategory, seats: string[]): Record<st
   return out;
 }
 
-export const MODEL_PHOTOS: Record<string, ModelPhoto[]> = data as Record<string, ModelPhoto[]>;
+/** Seat photos only (bundled). Full galleries are loaded per model from /photos/<model>.json. */
+export const SEAT_SHOTS: Record<string, ModelPhoto[]> = seatShots as Record<string, ModelPhoto[]>;

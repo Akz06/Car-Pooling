@@ -32,6 +32,7 @@ if (process.env.NODE_ENV === 'production') {
   // Hashed build files never change → cache for a year; index.html always revalidates.
   app.use('/assets', express.static(path.join(dist, 'assets'), { immutable: true, maxAge: '365d' }));
   app.use('/models', express.static(path.join(dist, 'models'), { maxAge: '30d' }));
+  app.use('/photos', express.static(path.join(dist, 'photos'), { maxAge: '1d' }));
   app.use(express.static(dist, { maxAge: 0 }));
   app.get(/^(?!\/api).*/, (_req, res) => {
     res.setHeader('cache-control', 'no-cache');

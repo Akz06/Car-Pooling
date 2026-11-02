@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 export interface ViewerPhoto {
   url: string;
+  thumb?: string;
   caption: string;
   credit?: { text: string; href?: string };
 }
@@ -62,7 +63,7 @@ export function PhotoViewer({ photos, start = 0, overlay }: { photos: ViewerPhot
         <div className="viewer__strip" ref={strip}>
           {photos.map((ph, k) => (
             <button key={ph.url + k} className={k === i ? 'on' : ''} onClick={() => setI(k)} aria-label={ph.caption}>
-              <img src={ph.url} alt="" loading="lazy" />
+              <img src={ph.thumb ?? ph.url} alt="" loading="lazy" />
             </button>
           ))}
         </div>
