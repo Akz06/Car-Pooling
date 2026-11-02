@@ -1,6 +1,6 @@
 # SeatShare — car pooling where you see the real car
 
-**Live demo:** https://akz06.github.io/Car-Pooling/ (deployed from `main` by GitHub Actions)
+**Live app:** hosted on Railway (auto-deploys from `main`).
 
 Owners add the car they actually drive (exact model, factory paint, interior trim, number plate, optional photo) and publish trips.
 Riders — including other owners — browse open trips, look **inside the car**, see which seats are taken by a man ♂ (blue) or a woman ♀ (pink), and pick a free seat.
@@ -39,8 +39,7 @@ Other scripts: `npm test` (API tests), `npm run typecheck`.
 
 ### Hosting with a real server (recommended)
 
-GitHub Pages can only serve files, so each phone keeps its own bookings. Running the server gives everyone
-the same live trips and seats, and serves car photos from its own cache.
+Running the server gives everyone the same live trips and seats, and serves car photos from its own cache.
 
 **Render (one click):** [Deploy to Render](https://render.com/deploy?repo=https://github.com/Akz06/Car-Pooling) — uses `render.yaml`:
 Starter plan (always on), Singapore region, 1 GB disk at `/var/data` for accounts, bookings and the photo cache,
@@ -54,12 +53,6 @@ in Postgres (table `seatshare_state`). Generate a domain under the service's *Se
 
 Server features in production: gzip, year-long caching of hashed assets, `/api/img` same-origin photo cache
 (Wikimedia, CarDekho), clean URLs (no `#/`).
-
-### GitHub Pages
-
-`.github/workflows/pages.yml` runs the type-check and tests, then `npm run build:pages`, and deploys on every push to `main`.
-The Pages build runs the booking rules in the browser (data stays on each visitor's device), loads real Wikimedia photos, and uses `#/` links so pages survive a refresh.
-One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
 ### Preview on your phone
 
