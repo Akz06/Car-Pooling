@@ -76,6 +76,22 @@ client/src/components/CarStage.tsx 3D / seat-map stage with roof, day/night and 
 client/src/pages/*       Find a ride, trip & seat picker, garage, add-car configurator, offer a ride, my trips, showroom
 ```
 
+## Password reset (WhatsApp via Zoho CPaaS)
+
+Users add a mobile number at sign-up or on the **Account** page. **Forgot password?** sends a 6-digit code to WhatsApp
+(10-minute expiry, 5 tries, 3 codes per 15 minutes; codes are stored hashed). Set these variables on the server:
+
+| Variable | Value |
+|---|---|
+| `ZOHO_CPAAS_API_KEY` | Send API key of your Zoho CPaaS Agent (Agent → WhatsApp → API) |
+| `ZOHO_WHATSAPP_FROM` | Your WhatsApp Business number, e.g. `+919876543210` |
+| `ZOHO_WHATSAPP_TEMPLATE` | Template key of an approved **Authentication** template |
+| `ZOHO_WHATSAPP_CODE_FIELD` | The template's code variable name (default `otp`) |
+| `ZOHO_CPAAS_URL` | Optional; default `https://cpaas.zoho.com/v1.1/whatsapp` |
+
+Until they're set (or if a send fails), the code is written to the server log. The owner can also force a reset with
+`RESET_EMAIL` + `RESET_PASSWORD` (remove them after one deploy).
+
 ## Booking rules (server-enforced)
 
 - The driver seat (1R, right-hand drive) always belongs to the trip owner; owners can't book their own trip.
