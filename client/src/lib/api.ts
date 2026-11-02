@@ -30,12 +30,16 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 }
 
 type Session = { token: string; user: PublicUser };
+export type Me = PublicUser & { email?: string; phone?: string };
 
 export const api = {
-  register: (b: { name: string; email: string; password: string; gender: 'M' | 'F' }) => request<Session>('POST', '/auth/register', b),
+  register: (b: { name: string; email: string; password: string; gender: 'M' | 'F'; phone?: string }) => request<Session>('POST', '/auth/register', b),
+  forgot: (identifier: string) => request<{ ok: boolean; message: string }>('POST', '/auth/forgot', { identifier }),
+  reset: (b: { identifier: string; code: string; password: string }) => request<Session>('POST', '/auth/reset', b),
+  updateMe: (b: { name?: string; phone?: string }) => request<Me>('PATCH', '/auth/me', b),
   login: (b: { email: string; password: string }) => request<Session>('POST', '/auth/login', b),
   logout: () => request<void>('POST', '/auth/logout'),
-  me: () => request<PublicUser>('GET', '/auth/me'),
+  me: () => request<Me>('GET', '/auth/me'),
   myCars: () => request<Car[]>('GET', '/cars/mine'),
   addCar: (b: Omit<Car, 'id' | 'ownerId' | 'createdAt'>) => request<Car>('POST', '/cars', b),
   deleteCar: (id: string) => request<void>('DELETE', `/cars/${id}`),

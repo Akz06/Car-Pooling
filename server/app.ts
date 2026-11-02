@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import { CATALOG } from '../shared/catalog.ts';
 import { HttpError, createCore, tripStatus, type Crypto } from '../shared/core.ts';
 import type { Store } from '../shared/core.ts';
+import { createOtpSender, type OtpSender } from './whatsapp.ts';
 
 export { tripStatus };
 
@@ -15,7 +16,7 @@ export const nodeCrypto: Crypto = {
 
 /** Thin HTTP layer — all rules live in shared/core.ts. */
 /** `extend` adds routes before the API's 404 handler (e.g. the image cache). */
-export function createApp(db: Store, extend?: (app: express.Express) => void) {
+export function createApp(db: Store, extend?: (app: express.Express) => void, otp: OtpSender = createOtpSender()) {
   const core = createCore(db, nodeCrypto);
   const app = express();
   app.use(express.json({ limit: '3mb' }));
@@ -26,7 +27,22 @@ export function createApp(db: Store, extend?: (app: express.Express) => void) {
   app.post('/api/auth/register', (req, res) => res.status(201).json(core.register(req.body)));
   app.post('/api/auth/login', (req, res) => res.json(core.login(req.body)));
   app.post('/api/auth/logout', (req, res) => { me(req); core.logout(token(req)); res.status(204).end(); });
-  app.get('/api/auth/me', (req, res) => { const u = me(req); res.json({ id: u.id, name: u.name, gender: u.gender, rating: u.rating }); });
+  app.get('/api/auth/me', (req, res) => { const u = me(req); res.json({ id: u.id, name: u.name, gender: u.gender, rating: u.rating, email: u.email, phone: u.phone }); });
+  app.patch('/api/auth/me', (req, res) => res.json(core.updateMe(me(req), req.body)));
+
+  // Forgot password → 6-digit code on WhatsApp → new password.
+  const sixDigits = () => String(crypto.randomInt(0, 1_000_000)).padStart(6, '0');
+  app.post('/api/auth/forgot', async (req, res, next) => {
+    try {
+      const target = core.startReset(req.body?.identifier, sixDigits);
+      if (target) await otp.send(target.phone, target.code, target.name);
+      // Same answer whether or not the account exists, so accounts can't be probed.
+      res.json({ ok: true, message: 'If that account has a mobile number, a 6-digit code is on its way to WhatsApp.' });
+    } catch (e) {
+      next(e);
+    }
+  });
+  app.post('/api/auth/reset', (req, res) => res.json(core.finishReset(req.body?.identifier, req.body?.code, req.body?.password)));
 
   app.get('/api/catalog', (_req, res) => res.json(CATALOG));
 

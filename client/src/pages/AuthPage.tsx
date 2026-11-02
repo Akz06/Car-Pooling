@@ -19,7 +19,8 @@ export function AuthPage() {
   const nav = useNavigate();
   const { signIn } = useAuth();
   const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [f, setF] = useState({ name: '', email: '', password: '', gender: '' as Gender | '' });
+  const [f, setF] = useState({ name: '', email: '', password: '', phone: '', gender: '' as Gender | '' });
+  const [forgot, setForgot] = useState<null | { step: 'ask' | 'code'; identifier: string; code: string; password: string; info: string }>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const next = params.get('next') || '/';
@@ -33,7 +34,7 @@ export function AuthPage() {
         ? await api.login(override)
         : mode === 'login'
           ? await api.login({ email: f.email, password: f.password })
-          : await api.register({ name: f.name, email: f.email, password: f.password, gender: f.gender as Gender });
+          : await api.register({ name: f.name, email: f.email, password: f.password, gender: f.gender as Gender, phone: f.phone || undefined });
       signIn(s.token, s.user);
       nav(next, { replace: true });
     } catch (err) {
@@ -54,6 +55,55 @@ export function AuthPage() {
         <CarView className="auth__car" model={model} paint={model.paints[3]} interior={model.interiors[0]} orientation="horizontal" seats={art} night ambient="#f59e0b" />
       </div>
       <div className="auth__form">
+        {forgot ? (
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            setError('');
+            setBusy(true);
+            try {
+              if (forgot.step === 'ask') {
+                const r = await api.forgot(forgot.identifier);
+                setForgot({ ...forgot, step: 'code', info: r.message });
+              } else {
+                const s = await api.reset({ identifier: forgot.identifier, code: forgot.code, password: forgot.password });
+                signIn(s.token, s.user);
+                nav(next, { replace: true });
+              }
+            } catch (err) {
+              setError((err as Error).message);
+            } finally {
+              setBusy(false);
+            }
+          }}>
+            <h2>Reset your password</h2>
+            {error && <div className="error">{error}</div>}
+            {forgot.step === 'ask' ? (
+              <>
+                <p className="muted">Enter the email or mobile number on your account. We'll send a 6-digit code to its WhatsApp.</p>
+                <div className="field">
+                  <label htmlFor="fid">Email or mobile number</label>
+                  <input id="fid" className="input" value={forgot.identifier} onChange={(e) => setForgot({ ...forgot, identifier: e.target.value })} required autoComplete="username" />
+                </div>
+                <button className="btn btn--primary btn--block" disabled={busy}>{busy ? 'Sending…' : 'Send code on WhatsApp'}</button>
+              </>
+            ) : (
+              <>
+                <p className="notes">{forgot.info}</p>
+                <div className="field">
+                  <label htmlFor="code">6-digit code</label>
+                  <input id="code" className="input" inputMode="numeric" autoComplete="one-time-code" maxLength={6} pattern="\d{6}" value={forgot.code} onChange={(e) => setForgot({ ...forgot, code: e.target.value.replace(/\D/g, '') })} required />
+                </div>
+                <div className="field">
+                  <label htmlFor="npw">New password</label>
+                  <input id="npw" className="input" type="password" minLength={6} autoComplete="new-password" value={forgot.password} onChange={(e) => setForgot({ ...forgot, password: e.target.value })} required />
+                </div>
+                <button className="btn btn--primary btn--block" disabled={busy || forgot.code.length !== 6}>{busy ? 'Please wait…' : 'Set new password'}</button>
+                <button type="button" className="btn btn--ghost btn--block" style={{ marginTop: 8 }} onClick={() => setForgot({ ...forgot, step: 'ask', code: '' })}>Send a new code</button>
+              </>
+            )}
+            <button type="button" className="btn btn--ghost btn--block" style={{ marginTop: 8 }} onClick={() => { setForgot(null); setError(''); }}>← Back to sign in</button>
+          </form>
+        ) : (
         <form onSubmit={submit}>
           <div className="seg" style={{ marginBottom: 22 }}>
             <button type="button" className={mode === 'login' ? 'on' : ''} onClick={() => setMode('login')}>Sign in</button>
@@ -75,6 +125,17 @@ export function AuthPage() {
             <label htmlFor="pw">Password</label>
             <input id="pw" className="input" type="password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} required minLength={6} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
           </div>
+          {mode === 'login' && (
+            <button type="button" className="link forgot-link" onClick={() => { setForgot({ step: 'ask', identifier: f.email, code: '', password: '', info: '' }); setError(''); }}>
+              Forgot password?
+            </button>
+          )}
+          {mode === 'register' && (
+            <div className="field">
+              <label htmlFor="phone">Mobile number (WhatsApp) — for password reset codes</label>
+              <input id="phone" className="input" type="tel" inputMode="tel" placeholder="98765 43210" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} autoComplete="tel" />
+            </div>
+          )}
           {mode === 'register' && (
             <div className="field">
               <label>Gender — shown on the seat you book</label>
@@ -100,6 +161,7 @@ export function AuthPage() {
             </div>
           )}
         </form>
+        )}
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import { CreateTripPage } from './pages/CreateTripPage';
 import { MyTripsPage } from './pages/MyTripsPage';
 import { ShowroomPage } from './pages/ShowroomPage';
 import { CarGalleryPage } from './pages/CarGalleryPage';
+import { AccountPage } from './pages/AccountPage';
 
 const NAV: [string, string, string][] = [
   ['/', 'Find a ride', 'M10.5 4a6.5 6.5 0 1 0 4 11.6l4.2 4.2 1.4-1.4-4.2-4.2A6.5 6.5 0 0 0 10.5 4Zm0 2a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z'],
@@ -63,8 +64,10 @@ export function App() {
           <div className="topbar__user">
             {user ? (
               <>
-                <span className={`avatar avatar--${user.gender}`} title={user.name}>{initials(user.name)}</span>
-                <span className="topbar__name">{user.name.split(' ')[0]}</span>
+                <NavLink to="/account" className="topbar__me" title="Account">
+                  <span className={`avatar avatar--${user.gender}`}>{initials(user.name)}</span>
+                  <span className="topbar__name">{user.name.split(' ')[0]}</span>
+                </NavLink>
                 <button className="btn btn--ghost btn--sm" onClick={signOut}>Sign out</button>
               </>
             ) : (
@@ -83,6 +86,7 @@ export function App() {
           <Route path="/trips/:id" element={<TripPage />} />
           <Route path="/garage" element={<RequireAuth><GaragePage /></RequireAuth>} />
           <Route path="/garage/new" element={<RequireAuth><AddCarPage /></RequireAuth>} />
+          <Route path="/account" element={<RequireAuth><AccountPage /></RequireAuth>} />
           <Route path="/me/trips" element={<RequireAuth><MyTripsPage /></RequireAuth>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

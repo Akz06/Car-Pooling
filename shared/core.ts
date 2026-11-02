@@ -15,6 +15,18 @@ export interface UserRecord {
   salt: string;
   rating: number;
   createdAt: string;
+  /** Mobile number in +<country><number> form; used for WhatsApp password reset codes. */
+  phone?: string;
+}
+
+/** A pending password reset: only a hash of the code is stored. */
+export interface ResetRecord {
+  userId: string;
+  codeHash: string;
+  salt: string;
+  expiresAt: string;
+  attempts: number;
+  createdAt: string;
 }
 
 export interface DbShape {
@@ -22,6 +34,7 @@ export interface DbShape {
   sessions: { token: string; userId: string; createdAt: string }[];
   cars: Car[];
   trips: Trip[];
+  resets: ResetRecord[];
 }
 
 export interface Store {
@@ -43,9 +56,24 @@ export class HttpError extends Error {
   }
 }
 
-export const emptyDb = (): DbShape => ({ users: [], sessions: [], cars: [], trips: [] });
+export const emptyDb = (): DbShape => ({ users: [], sessions: [], cars: [], trips: [], resets: [] });
 
 export const publicUser = (u: UserRecord): PublicUser => ({ id: u.id, name: u.name, gender: u.gender, rating: u.rating });
+
+/** Normalises an Indian or international mobile number to +<digits>; throws if it isn't one. */
+export function normalisePhone(v: unknown): string {
+  const raw = String(v ?? '').replace(/[\s()-]/g, '');
+  const digits = raw.replace(/^\+/, '');
+  if (!/^\d+$/.test(digits)) throw new HttpError(400, 'Enter a valid mobile number');
+  if (!raw.startsWith('+') && digits.length === 10 && /^[6-9]/.test(digits)) return `+91${digits}`; // Indian mobile
+  if (!raw.startsWith('+') && digits.length === 12 && digits.startsWith('91')) return `+${digits}`;
+  if (raw.startsWith('+') && digits.length >= 10 && digits.length <= 15) return `+${digits}`;
+  throw new HttpError(400, 'Enter a 10-digit mobile number (or include the country code, e.g. +91…)');
+}
+
+const RESET_TTL_MS = 10 * 60_000;
+const RESET_MAX_ATTEMPTS = 5;
+const RESET_MAX_PER_15_MIN = 3;
 
 function str(v: unknown, field: string, { min = 1, max = 200 } = {}): string {
   if (typeof v !== 'string' || v.trim().length < min || v.trim().length > max) {
@@ -101,8 +129,10 @@ export function createCore(db: Store, c: Crypto) {
       if (!/^\S+@\S+\.\S+$/.test(email)) throw new HttpError(400, 'Enter a valid email');
       if (gender !== 'M' && gender !== 'F') throw new HttpError(400, 'Select gender (M or F) — it is shown on your booked seat');
       if (db.data.users.some((u) => u.email === email)) throw new HttpError(409, 'An account with this email already exists');
+      const phone = b?.phone ? normalisePhone(b.phone) : undefined;
+      if (phone && db.data.users.some((u) => u.phone === phone)) throw new HttpError(409, 'This mobile number is already on another account');
       const { hash, salt } = c.hash(password);
-      const user: UserRecord = { id: c.id('usr'), name, email, gender, passwordHash: hash, salt, rating: 5, createdAt: new Date().toISOString() };
+      const user: UserRecord = { id: c.id('usr'), name, email, gender, phone, passwordHash: hash, salt, rating: 5, createdAt: new Date().toISOString() };
       db.write((d) => d.users.push(user));
       return startSession(user);
     },
@@ -113,6 +143,72 @@ export function createCore(db: Store, c: Crypto) {
       if (!user || !c.equal(c.hash(String(b?.password ?? ''), user.salt).hash, user.passwordHash)) {
         throw new HttpError(401, 'Wrong email or password');
       }
+      return startSession(user);
+    },
+
+    /** Owner updates their own name / mobile number. */
+    updateMe(user: UserRecord, b: Body) {
+      const name = b?.name !== undefined ? str(b.name, 'Name', { min: 2, max: 60 }) : user.name;
+      const phone = b?.phone === '' || b?.phone === null ? undefined : b?.phone !== undefined ? normalisePhone(b.phone) : user.phone;
+      if (phone && db.data.users.some((u) => u.phone === phone && u.id !== user.id)) throw new HttpError(409, 'This mobile number is already on another account');
+      db.write((d) => {
+        const u = d.users.find((x) => x.id === user.id)!;
+        u.name = name;
+        u.phone = phone;
+      });
+      return { ...publicUser(user), name, phone };
+    },
+
+    /**
+     * Step 1 of "forgot password": find the account by email or mobile and make a
+     * 6-digit code. Returns where to send it, or null when there's nowhere to send
+     * (callers must answer the same either way, so accounts can't be probed).
+     */
+    startReset(identifier: unknown, sixDigits: () => string): { phone: string; code: string; name: string } | null {
+      const id = String(identifier ?? '').trim().toLowerCase();
+      if (!id) throw new HttpError(400, 'Enter your email or mobile number');
+      let phone: string | undefined;
+      try { if (!id.includes('@')) phone = normalisePhone(id); } catch { /* not a phone */ }
+      const user = db.data.users.find((u) => (phone ? u.phone === phone : u.email === id));
+      if (!user?.phone) return null;
+      const now = Date.now();
+      const recent = db.data.resets.filter((r) => r.userId === user.id && now - new Date(r.createdAt).getTime() < 15 * 60_000);
+      if (recent.length >= RESET_MAX_PER_15_MIN) throw new HttpError(429, 'Too many codes requested — try again in 15 minutes');
+      const code = sixDigits();
+      const { hash, salt } = c.hash(code);
+      db.write((d) => {
+        d.resets = d.resets.filter((r) => new Date(r.expiresAt).getTime() > now - 15 * 60_000);
+        d.resets.push({ userId: user.id, codeHash: hash, salt, attempts: 0, createdAt: new Date(now).toISOString(), expiresAt: new Date(now + RESET_TTL_MS).toISOString() });
+      });
+      return { phone: user.phone, code, name: user.name };
+    },
+
+    /** Step 2: check the code, set the new password, sign out other devices, sign in here. */
+    finishReset(identifier: unknown, code: unknown, password: unknown) {
+      const id = String(identifier ?? '').trim().toLowerCase();
+      let phone: string | undefined;
+      try { if (!id.includes('@')) phone = normalisePhone(id); } catch { /* not a phone */ }
+      const user = db.data.users.find((u) => (phone ? u.phone === phone : u.email === id));
+      const fail = new HttpError(400, 'That code is wrong or has expired');
+      if (!user) throw fail;
+      const newPassword = str(password, 'Password', { min: 6, max: 200 });
+      const pending = db.data.resets
+        .filter((r) => r.userId === user.id && new Date(r.expiresAt).getTime() > Date.now() && r.attempts < RESET_MAX_ATTEMPTS)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+      if (!pending) throw fail;
+      const ok = c.equal(c.hash(String(code ?? '').trim(), pending.salt).hash, pending.codeHash);
+      if (!ok) {
+        db.write(() => { pending.attempts += 1; });
+        throw fail;
+      }
+      const { hash, salt } = c.hash(newPassword);
+      db.write((d) => {
+        const u = d.users.find((x) => x.id === user.id)!;
+        u.passwordHash = hash;
+        u.salt = salt;
+        d.sessions = d.sessions.filter((s) => s.userId !== user.id);
+        d.resets = d.resets.filter((r) => r.userId !== user.id);
+      });
       return startSession(user);
     },
 
