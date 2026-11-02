@@ -6,7 +6,7 @@ import { createApp, nodeCrypto } from './app.ts';
 import { Db } from './db.ts';
 import { openPgStore } from './pgStore.ts';
 import { imageCache } from './images.ts';
-import { seed } from '../shared/seed.ts';
+import { removeDemoData, seed } from '../shared/seed.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dataDir = process.env.DATA_DIR ?? path.join(root, 'data');
@@ -15,7 +15,13 @@ const dataDir = process.env.DATA_DIR ?? path.join(root, 'data');
 const pgStore = process.env.DATABASE_URL ? await openPgStore(process.env.DATABASE_URL) : null;
 const db = pgStore ?? new Db(process.env.DB_FILE ?? path.join(dataDir, 'db.json'));
 console.log(pgStore ? 'Storage: PostgreSQL' : `Storage: JSON file in ${dataDir}`);
-if (seed(db, nodeCrypto)) console.log('Seeded demo data — sign in as priya@demo.in / demo123 (or any *@demo.in)');
+// Real deployments start clean. SEED_DEMO=1 brings back the sample community for local testing.
+if (process.env.SEED_DEMO === '1') {
+  if (seed(db, nodeCrypto)) console.log('Seeded demo data — sign in as priya@demo.in / demo123 (or any *@demo.in)');
+} else {
+  const removed = removeDemoData(db);
+  if (removed) console.log(`Removed ${removed} demo users and their cars, trips and bookings`);
+}
 
 const app = createApp(db, (a) => imageCache(a, path.join(dataDir, 'img-cache')));
 app.set('trust proxy', 1);

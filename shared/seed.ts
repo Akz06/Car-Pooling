@@ -67,3 +67,22 @@ export function seed(db: Store, c: Crypto) {
   });
   return true;
 }
+
+/**
+ * Removes the demo community (users with @demo.in emails) and everything tied
+ * to them: their sessions, cars, trips, and their bookings on other trips.
+ * Safe to run on every start — it does nothing once they're gone.
+ */
+export function removeDemoData(db: Store) {
+  const demoIds = new Set(db.data.users.filter((u) => u.email.endsWith('@demo.in')).map((u) => u.id));
+  if (!demoIds.size) return 0;
+  db.write((d) => {
+    const demoCars = new Set(d.cars.filter((c) => demoIds.has(c.ownerId)).map((c) => c.id));
+    d.users = d.users.filter((u) => !demoIds.has(u.id));
+    d.sessions = d.sessions.filter((s) => !demoIds.has(s.userId));
+    d.cars = d.cars.filter((c) => !demoCars.has(c.id));
+    d.trips = d.trips.filter((t) => !demoIds.has(t.ownerId) && !demoCars.has(t.carId));
+    for (const t of d.trips) t.bookings = t.bookings.filter((b) => !demoIds.has(b.userId));
+  });
+  return demoIds.size;
+}

@@ -87,16 +87,18 @@ export function AuthPage() {
           <button className="btn btn--primary btn--block" disabled={busy || (mode === 'register' && !f.gender)}>
             {busy ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
           </button>
+          {import.meta.env.VITE_DEMO && (
           <div className="demo">
-            Try a demo account (password <code>demo123</code>):
-            <div>
-              {DEMO.map((d) => (
-                <button key={d} type="button" className="chip" onClick={() => submit(undefined, { email: `${d}@demo.in`, password: 'demo123' })}>
-                  {d[0].toUpperCase() + d.slice(1)}
-                </button>
-              ))}
+              Try a demo account (password <code>demo123</code>):
+              <div>
+                {DEMO.map((d) => (
+                  <button key={d} type="button" className="chip" onClick={() => submit(undefined, { email: `${d}@demo.in`, password: 'demo123' })}>
+                    {d[0].toUpperCase() + d.slice(1)}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </form>
       </div>
     </div>

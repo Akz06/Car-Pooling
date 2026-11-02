@@ -27,7 +27,7 @@ npm install
 npm run dev        # API on :4000, web on http://localhost:5173
 ```
 
-Demo data is seeded on first start — sign in as `priya@demo.in`, `arjun@demo.in`, `kavya@demo.in`, `vikram@demo.in` … (password `demo123`), or create your own account.
+`npm run dev` loads sample users and trips (`priya@demo.in` … password `demo123`). Deployed servers start clean and remove that sample data; set `SEED_DEMO=1` to keep it.
 
 Production:
 
