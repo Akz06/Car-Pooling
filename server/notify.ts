@@ -39,7 +39,11 @@ export interface OtpSender {
 
 const maskPhone = (p: string) => p.replace(/^(\+\d{2})\d+(\d{3})$/, '$1•••••$2');
 const maskEmail = (e: string) => e.replace(/^(.)[^@]*(@.*)$/, '$1•••$2');
-const authHeader = (key: string) => (/^Zoho-enczapikey\s/i.test(key) ? key : `Zoho-enczapikey ${key}`);
+/** Accepts the key with or without Zoho's prefix, even pasted with "Authorization:" or quotes. */
+export const authHeader = (key: string) => {
+  const bare = key.trim().replace(/^["']|["']$/g, '').replace(/^authorization\s*:\s*/i, '').replace(/^zoho-enczapikey\s*:?\s*/i, '').trim();
+  return `Zoho-enczapikey ${bare}`;
+};
 const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
 async function post(url: string, key: string, body: unknown) {
