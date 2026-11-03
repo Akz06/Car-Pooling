@@ -76,21 +76,26 @@ client/src/components/CarStage.tsx 3D / seat-map stage with roof, day/night and 
 client/src/pages/*       Find a ride, trip & seat picker, garage, add-car configurator, offer a ride, my trips, showroom
 ```
 
-## Password reset (WhatsApp via Zoho CPaaS)
+## Password reset (email + WhatsApp via Zoho CPaaS)
 
-Users add a mobile number at sign-up or on the **Account** page. **Forgot password?** sends a 6-digit code to WhatsApp
-(10-minute expiry, 5 tries, 3 codes per 15 minutes; codes are stored hashed). Set these variables on the server:
+**Forgot password?** sends a 6-digit code to the account's **email**, and also to **WhatsApp** when a mobile number is
+saved (sign-up or the **Account** page). Codes expire in 10 minutes, allow 5 tries, max 3 per 15 minutes, and are stored
+hashed. All requests use the Agent's channel API key as `Authorization: Zoho-enczapikey <key>`
+(Zoho CPaaS → Agents → your agent → SMTP/API → API Setup; email and WhatsApp have separate keys).
 
 | Variable | Value |
 |---|---|
-| `ZOHO_CPAAS_API_KEY` | Send API key of your Zoho CPaaS Agent (Agent → WhatsApp → API) |
+| `ZOHO_CPAAS_EMAIL_KEY` | Agent's **email** API key |
+| `ZOHO_EMAIL_FROM` | Sender address on your verified domain, e.g. `no-reply@yourdomain.com` |
+| `ZOHO_EMAIL_FROM_NAME` | Optional sender name (default `SeatShare`) |
+| `ZOHO_CPAAS_API_KEY` | Agent's **WhatsApp** API key |
 | `ZOHO_WHATSAPP_FROM` | Your WhatsApp Business number, e.g. `+919876543210` |
 | `ZOHO_WHATSAPP_TEMPLATE` | Template key of an approved **Authentication** template |
-| `ZOHO_WHATSAPP_CODE_FIELD` | The template's code variable name (default `otp`) |
-| `ZOHO_CPAAS_URL` | Optional; default `https://cpaas.zoho.com/v1.1/whatsapp` |
+| `ZOHO_WHATSAPP_CODE_FIELD` | The template's code variable (default `otp`) |
+| `ZOHO_CPAAS_BASE` | Optional; default `https://cpaas.zoho.com/v1.1` |
 
-Until they're set (or if a send fails), the code is written to the server log. The owner can also force a reset with
-`RESET_EMAIL` + `RESET_PASSWORD` (remove them after one deploy).
+A channel that isn't configured, or a failed send, writes the code to the server log instead. The owner can also force a
+reset with `RESET_EMAIL` + `RESET_PASSWORD` (remove them after one deploy).
 
 ## Booking rules (server-enforced)
 

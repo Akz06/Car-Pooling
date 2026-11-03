@@ -161,16 +161,17 @@ export function createCore(db: Store, c: Crypto) {
 
     /**
      * Step 1 of "forgot password": find the account by email or mobile and make a
-     * 6-digit code. Returns where to send it, or null when there's nowhere to send
-     * (callers must answer the same either way, so accounts can't be probed).
+     * 6-digit code. Returns where to send it (always the email, plus WhatsApp when
+     * a mobile is saved), or null for unknown accounts — callers must answer the
+     * same either way, so accounts can't be probed.
      */
-    startReset(identifier: unknown, sixDigits: () => string): { phone: string; code: string; name: string } | null {
+    startReset(identifier: unknown, sixDigits: () => string): { email: string; phone?: string; code: string; name: string } | null {
       const id = String(identifier ?? '').trim().toLowerCase();
       if (!id) throw new HttpError(400, 'Enter your email or mobile number');
       let phone: string | undefined;
       try { if (!id.includes('@')) phone = normalisePhone(id); } catch { /* not a phone */ }
       const user = db.data.users.find((u) => (phone ? u.phone === phone : u.email === id));
-      if (!user?.phone) return null;
+      if (!user) return null;
       const now = Date.now();
       const recent = db.data.resets.filter((r) => r.userId === user.id && now - new Date(r.createdAt).getTime() < 15 * 60_000);
       if (recent.length >= RESET_MAX_PER_15_MIN) throw new HttpError(429, 'Too many codes requested — try again in 15 minutes');
@@ -180,7 +181,7 @@ export function createCore(db: Store, c: Crypto) {
         d.resets = d.resets.filter((r) => new Date(r.expiresAt).getTime() > now - 15 * 60_000);
         d.resets.push({ userId: user.id, codeHash: hash, salt, attempts: 0, createdAt: new Date(now).toISOString(), expiresAt: new Date(now + RESET_TTL_MS).toISOString() });
       });
-      return { phone: user.phone, code, name: user.name };
+      return { email: user.email, phone: user.phone, code, name: user.name };
     },
 
     /** Step 2: check the code, set the new password, sign out other devices, sign in here. */

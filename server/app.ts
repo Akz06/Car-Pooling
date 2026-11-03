@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import { CATALOG } from '../shared/catalog.ts';
 import { HttpError, createCore, tripStatus, type Crypto } from '../shared/core.ts';
 import type { Store } from '../shared/core.ts';
-import { createOtpSender, type OtpSender } from './whatsapp.ts';
+import { createOtpSender, type OtpSender } from './notify.ts';
 
 export { tripStatus };
 
@@ -35,9 +35,9 @@ export function createApp(db: Store, extend?: (app: express.Express) => void, ot
   app.post('/api/auth/forgot', async (req, res, next) => {
     try {
       const target = core.startReset(req.body?.identifier, sixDigits);
-      if (target) await otp.send(target.phone, target.code, target.name);
+      if (target) await otp.send(target);
       // Same answer whether or not the account exists, so accounts can't be probed.
-      res.json({ ok: true, message: 'If that account has a mobile number, a 6-digit code is on its way to WhatsApp.' });
+      res.json({ ok: true, message: 'If that account exists, a 6-digit code is on its way to its email — and to WhatsApp if a mobile number is saved.' });
     } catch (e) {
       next(e);
     }

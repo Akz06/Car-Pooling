@@ -79,12 +79,12 @@ export function AuthPage() {
             {error && <div className="error">{error}</div>}
             {forgot.step === 'ask' ? (
               <>
-                <p className="muted">Enter the email or mobile number on your account. We'll send a 6-digit code to its WhatsApp.</p>
+                <p className="muted">Enter the email or mobile number on your account. We'll send a 6-digit code to your email, and to WhatsApp if you've saved a mobile number.</p>
                 <div className="field">
                   <label htmlFor="fid">Email or mobile number</label>
                   <input id="fid" className="input" value={forgot.identifier} onChange={(e) => setForgot({ ...forgot, identifier: e.target.value })} required autoComplete="username" />
                 </div>
-                <button className="btn btn--primary btn--block" disabled={busy}>{busy ? 'Sending…' : 'Send code on WhatsApp'}</button>
+                <button className="btn btn--primary btn--block" disabled={busy}>{busy ? 'Sending…' : 'Send reset code'}</button>
               </>
             ) : (
               <>
@@ -132,7 +132,7 @@ export function AuthPage() {
           )}
           {mode === 'register' && (
             <div className="field">
-              <label htmlFor="phone">Mobile number (WhatsApp) — for password reset codes</label>
+              <label htmlFor="phone">Mobile number (WhatsApp, optional) — also gets password-reset codes</label>
               <input id="phone" className="input" type="tel" inputMode="tel" placeholder="98765 43210" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} autoComplete="tel" />
             </div>
           )}

@@ -48,7 +48,7 @@ export function AccountPage() {
         </div>
       </div>
       <form className="panel" onSubmit={save}>
-        {!me.phone && <div className="notes" style={{ marginTop: 0, marginBottom: 14 }}>Add your WhatsApp number so you can reset your password if you forget it.</div>}
+        {!me.phone && <div className="notes" style={{ marginTop: 0, marginBottom: 14 }}>Optional: add your WhatsApp number to also get password-reset codes there (they always go to your email).</div>}
         <div className="field">
           <label htmlFor="aname">Full name</label>
           <input id="aname" className="input" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} required minLength={2} />

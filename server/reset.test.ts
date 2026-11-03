@@ -5,11 +5,11 @@ import type { Server } from 'node:http';
 import { createApp } from './app.ts';
 import { Db } from './db.ts';
 
-const sent: { phone: string; code: string }[] = [];
+const sent: { email: string; phone?: string; code: string }[] = [];
 let server: Server;
 let base = '';
 before(async () => {
-  server = createApp(new Db(null), undefined, { live: true, send: async (phone, code) => { sent.push({ phone, code }); } }).listen(0);
+  server = createApp(new Db(null), undefined, { channels: { email: true, whatsapp: true }, send: async (t) => { sent.push(t); } }).listen(0);
   await new Promise((r) => server.once('listening', r));
   base = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api`;
 });
@@ -40,6 +40,15 @@ test('forgot password sends a WhatsApp code and resets the password', async () =
   assert.equal((await call('POST', '/auth/login', { email: 'rohini@x.in', password: 'newpass1' })).status, 200);
   // a used code can't be reused
   assert.equal((await call('POST', '/auth/reset', { identifier: 'rohini@x.in', code: sent.at(-1)!.code, password: 'again123' })).status, 400);
+});
+
+test('accounts without a mobile number get the code by email', async () => {
+  await call('POST', '/auth/register', { name: 'No Phone', email: 'nophone@x.in', password: 'secret1', gender: 'F' });
+  assert.equal((await call('POST', '/auth/forgot', { identifier: 'NoPhone@x.in' })).status, 200);
+  const last = sent.at(-1)!;
+  assert.equal(last.email, 'nophone@x.in');
+  assert.equal(last.phone, undefined);
+  assert.equal((await call('POST', '/auth/reset', { identifier: 'nophone@x.in', code: last.code, password: 'fresh123' })).status, 200);
 });
 
 test('unknown accounts get the same answer and no message', async () => {
