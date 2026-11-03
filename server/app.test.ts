@@ -80,3 +80,15 @@ test('validation: unknown paint, past departure, auth required', async () => {
   assert.equal((await call('GET', '/cars/mine')).status, 401);
   assert.equal((await call('POST', '/trips', { carId: car.body.id, from: 'Andheri', to: 'Bandra', departAt: new Date(Date.now() + 3600_000).toISOString(), pricePerSeat: 1, womenOnly: true }, owner)).status, 400);
 });
+
+test('seating versions: a 5-seater XUV700 only offers its own seats', async () => {
+  const owner = await register('Layla', 'F');
+  assert.equal((await call('POST', '/cars', { modelId: 'mahindra-xuv700', layoutId: '9', paintId: 'red-rage', interiorId: 'black-ivory', plate: 'KA 09 LY 0001', year: 2024 }, owner)).status, 400, 'unknown layout');
+  const car = await call('POST', '/cars', { modelId: 'mahindra-xuv700', layoutId: '5', paintId: 'red-rage', interiorId: 'black-ivory', plate: 'KA 09 LY 0002', year: 2024 }, owner);
+  assert.equal(car.status, 201);
+  assert.equal(car.body.layoutId, '5');
+  const departAt = new Date(Date.now() + 86400_000).toISOString();
+  const trip = await call('POST', '/trips', { carId: car.body.id, from: 'Mysuru', to: 'Bengaluru', departAt, pricePerSeat: 300 }, owner);
+  assert.deepEqual(trip.body.offeredSeats, ['1L', '2L', '2M', '2R']);
+  assert.equal((await call('POST', '/trips', { carId: car.body.id, from: 'Mysuru', to: 'Ooty', departAt: new Date(Date.now() + 5 * 86400_000).toISOString(), pricePerSeat: 300, offeredSeats: ['3L'] }, owner)).status, 400, 'no third row on a 5-seater');
+});

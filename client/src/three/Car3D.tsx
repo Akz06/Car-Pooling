@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html, RoundedBox } from '@react-three/drei';
+import { RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import { DRIVER_SEAT, type CarModel, type Interior, type Paint } from '@shared/catalog';
 import type { Gender } from '@shared/types';
@@ -22,7 +22,6 @@ export interface Car3DProps {
 }
 
 const SHIRT: Record<Gender, string> = { M: '#2563eb', F: '#db2777' };
-const BADGE: Record<Gender, string> = { M: '#2f7cf6', F: '#ec4899' };
 
 function paintMaterial(hex: string, finish: Paint['finish']) {
   const matte = finish === 'matte';
@@ -120,7 +119,7 @@ export function Car3D(props: Car3DProps) {
         </>
       )}
       {b.seats.map((s) => (
-        <Seat key={s.id} seat={s} build={b} state={seats[s.id]} mats={mats} showMesh={!hideBody} showBadge={cabin || !!hideBody}
+        <Seat key={s.id} seat={s} build={b} state={seats[s.id]} mats={mats} showMesh={!hideBody}
           onClick={onSeatClick} onHover={onSeatHover} />
       ))}
     </group>
@@ -377,8 +376,8 @@ function Interior({ build: b, model, mats, night }: { build: CarBuild; model: Ca
   );
 }
 
-function Seat({ seat, build, state, mats, showMesh, showBadge, onClick, onHover }: {
-  seat: Seat3D; build: CarBuild; state?: SeatState; mats: Record<string, THREE.Material>; showMesh: boolean; showBadge: boolean;
+function Seat({ seat, build, state, mats, showMesh, onClick, onHover }: {
+  seat: Seat3D; build: CarBuild; state?: SeatState; mats: Record<string, THREE.Material>; showMesh: boolean;
   onClick?: (id: string) => void; onHover?: (id: string | null) => void;
 }) {
   const status = state?.status ?? 'empty';
@@ -423,7 +422,6 @@ function Seat({ seat, build, state, mats, showMesh, showBadge, onClick, onHover 
           <meshBasicMaterial color={ring} transparent opacity={0.4} depthWrite={false} />
         </mesh>
       )}
-      {showBadge && <SeatBadge seat={seat} state={state} y={cushionY + backH + 0.42} onClick={clickable ? () => onClick!(seat.id) : undefined} />}
     </group>
   );
 }
@@ -474,20 +472,7 @@ function Occupant({ seat, gender }: { seat: Seat3D; gender: Gender }) {
   );
 }
 
-function SeatBadge({ seat, state, y, onClick }: { seat: Seat3D; state?: SeatState; y: number; onClick?: () => void }) {
-  const status = state?.status ?? 'empty';
-  if (status === 'empty' || status === 'unavailable') return null;
-  const g = state?.gender;
-  const occupied = g && (status === 'booked' || status === 'mine' || status === 'driver');
-  const bg = occupied ? BADGE[g!] : status === 'selected' ? '#f59e0b' : '#22c55e';
-  const label = occupied ? (g === 'M' ? '♂' : '♀') : status === 'selected' ? '✓' : '+';
-  return (
-    <Html position={[seat.x - seat.d * 0.45, y, seat.z]} center zIndexRange={[20, 0]} style={{ pointerEvents: onClick ? 'auto' : 'none' }}>
-      <button className={`seat3d-badge seat3d-badge--${status}`} style={{ background: bg }} onClick={onClick} aria-label={`Seat ${seat.id}`}>
-        <span>{label}</span>
-        {status === 'driver' && <em>Driver</em>}
-        {status === 'mine' && <em>You</em>}
-      </button>
-    </Html>
-  );
+/** Where a seat's badge floats (above the headrest), in car coordinates. */
+export function badgeAnchor(seat: Seat3D): [number, number, number] {
+  return [seat.x - seat.d * 0.45, seat.cushionY + seat.backH + 0.42, seat.z];
 }

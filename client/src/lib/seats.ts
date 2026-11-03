@@ -1,9 +1,9 @@
-import { DRIVER_SEAT, allSeats, getModel, seatLabel } from '@shared/catalog';
+import { DRIVER_SEAT, allSeats, modelForCar, seatLabel } from '@shared/catalog';
 import type { PublicUser, TripView } from '@shared/types';
 import type { SeatState } from '../components/CarView';
 
 export function tripSeatStates(trip: TripView, me: PublicUser | null, selected: string | null): Record<string, SeatState> {
-  const model = getModel(trip.car.modelId)!;
+  const model = modelForCar(trip.car)!;
   const out: Record<string, SeatState> = {};
   for (const seat of allSeats(model)) {
     const booking = trip.bookings.find((b) => b.seatId === seat);
@@ -18,7 +18,7 @@ export function tripSeatStates(trip: TripView, me: PublicUser | null, selected: 
 
 /** Seats that share a row with this one, nearest first — "who will I sit next to?" */
 export function neighbours(trip: TripView, seatId: string) {
-  const model = getModel(trip.car.modelId)!;
+  const model = modelForCar(trip.car)!;
   const row = model.rows.find((r) => r.seats.includes(seatId));
   if (!row) return [];
   const i = row.seats.indexOf(seatId);

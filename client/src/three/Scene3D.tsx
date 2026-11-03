@@ -11,7 +11,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import type { CarModel } from '@shared/catalog';
-import { Car3D, type Car3DProps } from './Car3D';
+import { Car3D, badgeAnchor, type Car3DProps } from './Car3D';
+import type { SeatState } from '../components/CarView';
 import { buildCar } from './carBuilder';
 
 export type CameraPreset = 'front' | 'side' | 'rear' | 'top';
@@ -188,13 +189,73 @@ export interface Scene3DProps extends Omit<Car3DProps, 'cabin' | 'night' | 'hide
   autoRotate?: boolean;
 }
 
+const BADGE_BG = { M: '#2f7cf6', F: '#ec4899' } as const;
+
+/**
+ * Seat badges are plain page elements on a layer above the canvas, moved every
+ * frame to follow their seat. (drei's <Html> portals crash React when the
+ * canvas is remounted, so we don't use them.)
+ */
+function BadgeProjector({ anchors, els }: { anchors: Map<string, THREE.Vector3>; els: React.RefObject<Map<string, HTMLElement>> }) {
+  const { camera, size } = useThree();
+  const v = useMemo(() => new THREE.Vector3(), []);
+  useFrame(() => {
+    for (const [id, el] of els.current ?? []) {
+      const a = anchors.get(id);
+      if (!a) continue;
+      v.copy(a).project(camera);
+      const visible = v.z < 1 && Math.abs(v.x) < 1.2 && Math.abs(v.y) < 1.2;
+      el.style.opacity = visible ? '1' : '0';
+      el.style.transform = `translate(${((v.x + 1) / 2) * size.width}px, ${((1 - v.y) / 2) * size.height}px) translate(-50%, -50%)`;
+    }
+  });
+  return null;
+}
+
+function SeatBadges({ seats, ids, onSeatClick, els }: {
+  seats: Record<string, SeatState>; ids: string[]; onSeatClick?: (id: string) => void; els: React.RefObject<Map<string, HTMLElement>>;
+}) {
+  return (
+    <div className="scene3d__badges">
+      {ids.map((id) => {
+        const st = seats[id];
+        const status = st?.status ?? 'empty';
+        if (status === 'empty' || status === 'unavailable') return null;
+        const g = st?.gender;
+        const occupied = g && (status === 'booked' || status === 'mine' || status === 'driver');
+        const clickable = !!onSeatClick && status !== 'driver' && status !== 'booked';
+        return (
+          <button
+            key={id}
+            ref={(el) => { if (el) els.current!.set(id, el); else els.current!.delete(id); }}
+            className={`seat3d-badge seat3d-badge--${status}`}
+            style={{ background: occupied ? BADGE_BG[g!] : status === 'selected' ? '#f59e0b' : '#22c55e', pointerEvents: clickable ? 'auto' : 'none', opacity: 0 }}
+            onClick={clickable ? () => onSeatClick!(id) : undefined}
+            aria-label={`Seat ${id}`}
+          >
+            <span>{occupied ? (g === 'M' ? '♂' : '♀') : status === 'selected' ? '✓' : '+'}</span>
+            {status === 'driver' && <em>Driver</em>}
+            {status === 'mine' && <em>You</em>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function Scene3D(props: Scene3DProps) {
   const { model, preset, night, autoRotate } = props;
   const L = night ? LIGHT.night : LIGHT.day;
-  const size = useMemo(() => { const b = buildCar(model); return { L: b.L, H: b.H }; }, [model]);
+  const { size, anchors } = useMemo(() => {
+    const b = buildCar(model);
+    return { size: { L: b.L, H: b.H }, anchors: new Map(b.seats.map((st) => [st.id, new THREE.Vector3(...badgeAnchor(st))])) };
+  }, [model]);
+  const badgeEls = useRef(new Map<string, HTMLElement>());
   const controls = useRef<OrbitControlsImpl | null>(null);
   const dropIn = useDropInModel(model);
+  const showBadges = props.cabin || !!dropIn;
   return (
+    <div className="scene3d">
     <Canvas shadows dpr={[1, 1.75]} camera={{ position: [5, 2, 5], fov: 34, near: 0.1, far: 120 }} gl={{ antialias: true }}>
       <AdaptiveDpr pixelated={false} />
       <color attach="background" args={[L.background]} />
@@ -212,8 +273,11 @@ export default function Scene3D(props: Scene3DProps) {
       <Car3D {...props} hideBody={!!dropIn} />
       {dropIn && <primitive object={dropIn} />}
       <CameraRig preset={preset} size={size} controls={controls} />
+      <BadgeProjector anchors={anchors} els={badgeEls} />
       <OrbitControls ref={controls} enablePan={false} enableDamping dampingFactor={0.08} minDistance={2.2} maxDistance={14}
         maxPolarAngle={1.52} autoRotate={autoRotate} autoRotateSpeed={0.6} />
     </Canvas>
+    {showBadges && <SeatBadges seats={props.seats} ids={[...anchors.keys()]} onSeatClick={props.onSeatClick} els={badgeEls} />}
+    </div>
   );
 }

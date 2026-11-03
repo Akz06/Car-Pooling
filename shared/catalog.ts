@@ -49,6 +49,13 @@ export interface SeatRow {
   seats: string[];
 }
 
+/** An alternative factory seating version, e.g. the 5-seater XUV700. */
+export interface SeatLayout {
+  id: string;
+  label: string;
+  rows: SeatRow[];
+}
+
 export interface CarModel {
   id: string;
   make: string;
@@ -64,6 +71,10 @@ export interface CarModel {
   fuel: 'Petrol' | 'Diesel' | 'Electric' | 'Hybrid' | 'CNG';
   bootLitres: number;
   rows: SeatRow[];
+  /** Label for the default `rows`, e.g. "7-seater (captain seats)". */
+  defaultLayoutLabel?: string;
+  /** Other seating versions sold in India; `rows` stays the default. */
+  layouts?: SeatLayout[];
   screen: ScreenStyle;
   screenInches: number;
   cluster: Cluster;
@@ -261,6 +272,8 @@ export const CATALOG: CarModel[] = [
     fuel: 'Diesel',
     bootLitres: 240,
     rows: [ROW_FRONT, ROW_BENCH3(2), ROW_BENCH2(3)],
+    defaultLayoutLabel: '7-seater',
+    layouts: [{ id: '5', label: '5-seater', rows: [ROW_FRONT, ROW_BENCH3(2)] }, { id: '6c', label: '6-seater (captain seats)', rows: [ROW_FRONT, ROW_CAPTAIN(2), ROW_BENCH2(3)] }],
     screen: 'panoramic',
     screenInches: 10.25,
     cluster: 'digital',
@@ -301,6 +314,8 @@ export const CATALOG: CarModel[] = [
     fuel: 'Diesel',
     bootLitres: 300,
     rows: [ROW_FRONT, ROW_CAPTAIN(2), ROW_BENCH3(3)],
+    defaultLayoutLabel: '7-seater (captain seats)',
+    layouts: [{ id: '8', label: '8-seater', rows: [ROW_FRONT, ROW_BENCH3(2), ROW_BENCH3(3)] }],
     screen: 'integrated',
     screenInches: 8,
     cluster: 'analog',
@@ -375,6 +390,8 @@ export const CATALOG: CarModel[] = [
     fuel: 'Petrol',
     bootLitres: 216,
     rows: [ROW_FRONT, ROW_CAPTAIN(2), ROW_BENCH2(3)],
+    defaultLayoutLabel: '6-seater (captain seats)',
+    layouts: [{ id: '7', label: '7-seater', rows: [ROW_FRONT, ROW_BENCH3(2), ROW_BENCH2(3)] }],
     screen: 'integrated',
     screenInches: 10.25,
     cluster: 'digital',
@@ -520,6 +537,34 @@ export const CATALOG: CarModel[] = [
 
 export function getModel(id: string): CarModel | undefined {
   return CATALOG.find((m) => m.id === id);
+}
+
+/** Every seating version of a model, default first. */
+export function seatingOptions(model: CarModel): SeatLayout[] {
+  const n = model.rows.reduce((a, r) => a + r.seats.length, 0);
+  return [{ id: 'default', label: model.defaultLayoutLabel ?? `${n}-seater`, rows: model.rows }, ...(model.layouts ?? [])];
+}
+
+const layoutCache = new Map<string, CarModel>();
+/** The model with a given seating version applied (same object for the same pair, so renders stay cheap). */
+export function withLayout(model: CarModel, layoutId?: string): CarModel {
+  const layout = model.layouts?.find((l) => l.id === layoutId);
+  if (!layout) return model;
+  const key = `${model.id}:${layout.id}`;
+  let m = layoutCache.get(key);
+  if (!m) layoutCache.set(key, (m = { ...model, rows: layout.rows }));
+  return m;
+}
+
+/** The model a registered car really has, including its seating version. */
+export function modelForCar(car: { modelId: string; layoutId?: string }): CarModel | undefined {
+  const model = getModel(car.modelId);
+  return model && withLayout(model, car.layoutId);
+}
+
+/** "2+3+2", with "(captain)" when a row has captain seats. */
+export function rowsSummary(rows: SeatRow[]) {
+  return rows.map((r) => r.seats.length).join('+') + (rows.some((r) => r.kind === 'captain') ? ' (captain)' : '');
 }
 
 export function allSeats(model: CarModel): string[] {

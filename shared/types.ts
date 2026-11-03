@@ -12,6 +12,8 @@ export interface Car {
   id: string;
   ownerId: string;
   modelId: string;
+  /** Seating version (see CarModel.layouts); absent = the model's default. */
+  layoutId?: string;
   paintId: string;
   interiorId: string;
   plate: string;

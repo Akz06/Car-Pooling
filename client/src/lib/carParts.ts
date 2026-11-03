@@ -1,8 +1,8 @@
-import { getModel, type CarModel, type Interior, type Paint } from '@shared/catalog';
+import { modelForCar, type CarModel, type Interior, type Paint } from '@shared/catalog';
 import type { Car } from '@shared/types';
 
 export function resolveCar(car: Car): { model: CarModel; paint: Paint; interior: Interior } {
-  const model = getModel(car.modelId)!;
+  const model = modelForCar(car)!;
   return {
     model,
     paint: model.paints.find((p) => p.id === car.paintId) ?? model.paints[0],

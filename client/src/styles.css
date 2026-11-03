@@ -424,3 +424,46 @@ h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: v
 .colour-dots span { display: block; width: 100%; height: 100%; border-radius: 50%; box-shadow: inset 0 -3px 6px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.25); }
 .topbar__me { display: inline-flex; align-items: center; gap: 8px; }
 .forgot-link { background: none; border: 0; padding: 0; margin: -4px 0 14px; cursor: pointer; font: inherit; font-size: 13px; }
+
+/* ---------- add-car wizard ---------- */
+.wizard { display: flex; gap: 6px; list-style: none; padding: 0; margin: 0 0 18px; overflow-x: auto; scrollbar-width: none; }
+.wizard li { flex: 1; min-width: max-content; }
+.wizard button { width: 100%; display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--muted); border-radius: 12px; padding: 8px 12px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.wizard button:disabled { cursor: default; opacity: .6; }
+.wizard span { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: #1f2937; font-size: 12px; flex: none; }
+.wizard li.on button { border-color: var(--accent); color: var(--text); }
+.wizard li.on span { background: var(--accent); color: #111; }
+.wizard li.done button { color: var(--text); }
+.wizard li.done span { background: #14532d; color: #86efac; }
+.make-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
+.make-card { display: grid; justify-items: start; gap: 6px; border: 1px solid var(--line); background: linear-gradient(180deg, var(--panel), var(--bg2)); border-radius: 16px; padding: 16px; color: var(--text); font: inherit; cursor: pointer; text-align: left; transition: border-color .15s, transform .15s; }
+.make-card:hover { transform: translateY(-2px); border-color: #3a4660; }
+.make-card.on { border-color: var(--accent); }
+.make-card__badge { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: #fff; font-weight: 800; letter-spacing: .02em; box-shadow: inset 0 -3px 0 rgba(0,0,0,.25); }
+.make-card b { font-size: 16px; }
+.make-card small { color: var(--muted); }
+.pick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pick-card { display: grid; gap: 4px; border: 1px solid var(--line); background: #0c111b; border-radius: 14px; padding: 8px; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.pick-card.on { border-color: var(--accent); background: #1f1a10; }
+.pick-card__img { display: block; aspect-ratio: 3 / 2; border-radius: 10px; overflow: hidden; background: #1a1f29; }
+.pick-card__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pick-card__img svg { width: 100%; height: 100%; }
+.pick-card b { font-size: 14px; }
+.pick-card small { color: var(--muted); font-size: 12px; }
+.seat-options { display: grid; gap: 10px; }
+.seat-option { display: grid; grid-template-columns: 140px 1fr; gap: 12px; align-items: center; border: 1px solid var(--line); background: #0c111b; border-radius: 14px; padding: 8px 12px 8px 8px; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.seat-option.on { border-color: var(--accent); background: #1f1a10; }
+.seat-option svg { width: 100%; height: auto; background: #2b2e33; border-radius: 8px; }
+.seat-option b { display: block; font-size: 15px; }
+.seat-option small { color: var(--muted); }
+.preview-caption { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; padding: 10px 2px; font-size: 14px; color: var(--muted); }
+.preview-caption b { color: var(--text); font-size: 16px; }
+.stage--empty { display: grid; place-items: center; min-height: 360px; color: var(--muted); padding: 24px; text-align: center; }
+@media (max-width: 640px) {
+  .make-grid { grid-template-columns: 1fr 1fr; }
+  .wizard button { padding: 6px 10px; font-size: 12px; }
+  .seat-option { grid-template-columns: 110px 1fr; }
+}
+.scene3d { position: relative; width: 100%; height: 100%; }
+.scene3d__badges { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.scene3d__badges .seat3d-badge { position: absolute; left: 0; top: 0; will-change: transform; transition: opacity .2s; }

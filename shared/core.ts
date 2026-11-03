@@ -3,7 +3,7 @@
  * Used by the Express server (server/app.ts) and by the in-browser demo
  * backend (client/src/demo), so both enforce exactly the same rules.
  */
-import { DRIVER_SEAT, allSeats, getModel } from './catalog.ts';
+import { DRIVER_SEAT, allSeats, getModel, modelForCar } from './catalog.ts';
 import type { Car, Gender, PublicUser, Trip, TripStatus, TripView } from './types.ts';
 
 export interface UserRecord {
@@ -224,6 +224,8 @@ export function createCore(db: Store, c: Crypto) {
       if (!model) throw new HttpError(400, 'Unknown car model');
       if (!model.paints.some((p) => p.id === b.paintId)) throw new HttpError(400, 'Pick a factory paint for this model');
       if (!model.interiors.some((i) => i.id === b.interiorId)) throw new HttpError(400, 'Pick an interior trim for this model');
+      const layoutId = b.layoutId && b.layoutId !== 'default' ? String(b.layoutId) : undefined;
+      if (layoutId && !model.layouts?.some((l) => l.id === layoutId)) throw new HttpError(400, 'Pick a seating version this model is sold with');
       const plate = str(b.plate, 'Number plate', { min: 4, max: 15 }).toUpperCase();
       const year = Number(b.year);
       const thisYear = new Date().getFullYear();
@@ -235,7 +237,7 @@ export function createCore(db: Store, c: Crypto) {
         throw new HttpError(409, 'A car with this number plate is already registered');
       }
       const car: Car = {
-        id: c.id('car'), ownerId: user.id, modelId: model.id, paintId: b.paintId, interiorId: b.interiorId, plate, year,
+        id: c.id('car'), ownerId: user.id, modelId: model.id, layoutId, paintId: b.paintId, interiorId: b.interiorId, plate, year,
         nickname: typeof b.nickname === 'string' && b.nickname.trim() ? b.nickname.trim().slice(0, 40) : undefined,
         photo: b.photo, createdAt: new Date().toISOString(),
       };
@@ -275,7 +277,7 @@ export function createCore(db: Store, c: Crypto) {
     createTrip(user: UserRecord, b: Body) {
       const car = db.data.cars.find((x) => x.id === b?.carId && x.ownerId === user.id);
       if (!car) throw new HttpError(400, 'Choose one of your own cars');
-      const model = getModel(car.modelId)!;
+      const model = modelForCar(car)!;
       const from = str(b.from, 'Pickup', { min: 2, max: 80 });
       const to = str(b.to, 'Destination', { min: 2, max: 80 });
       if (from.toLowerCase() === to.toLowerCase()) throw new HttpError(400, 'Pickup and destination must differ');
