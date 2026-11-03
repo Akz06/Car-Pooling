@@ -15,6 +15,10 @@ const dataDir = process.env.DATA_DIR ?? path.join(root, 'data');
 const pgStore = process.env.DATABASE_URL ? await openPgStore(process.env.DATABASE_URL) : null;
 const db = pgStore ?? new Db(process.env.DB_FILE ?? path.join(dataDir, 'db.json'));
 console.log(pgStore ? 'Storage: PostgreSQL' : `Storage: JSON file in ${dataDir}`);
+if (!pgStore && process.env.NODE_ENV === 'production' && !process.env.DATA_DIR_PERSISTENT) {
+  console.warn('WARNING: DATABASE_URL is not set — accounts, cars and trips are kept in a file that is ERASED on every redeploy. ' +
+    'Add a PostgreSQL database and set DATABASE_URL on this service (Railway: DATABASE_URL = ${{Postgres.DATABASE_URL}}).');
+}
 // Real deployments start clean. SEED_DEMO=1 brings back the sample community for local testing.
 if (process.env.SEED_DEMO === '1') {
   if (seed(db, nodeCrypto)) console.log('Seeded demo data — sign in as priya@demo.in / demo123 (or any *@demo.in)');

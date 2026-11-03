@@ -17,6 +17,7 @@ export const nodeCrypto: Crypto = {
 /** Thin HTTP layer — all rules live in shared/core.ts. */
 /** `extend` adds routes before the API's 404 handler (e.g. the image cache). */
 export function createApp(db: Store, extend?: (app: express.Express) => void, otp: OtpSender = createOtpSender()) {
+  if (process.env.NODE_ENV !== 'test') console.log(`Password reset codes: email ${otp.channels.email ? 'on' : 'off (codes go to this log)'}, WhatsApp ${otp.channels.whatsapp ? 'on' : 'off'}`);
   const core = createCore(db, nodeCrypto);
   const app = express();
   app.use(express.json({ limit: '3mb' }));
@@ -36,6 +37,7 @@ export function createApp(db: Store, extend?: (app: express.Express) => void, ot
     try {
       const target = core.startReset(req.body?.identifier, sixDigits);
       if (target) await otp.send(target);
+      else console.log(`[password reset] Requested for ${String(req.body?.identifier ?? '').trim().replace(/^(.)[^@]*(@.*)$/, '$1•••$2')} — no account with that email or mobile`);
       // Same answer whether or not the account exists, so accounts can't be probed.
       res.json({ ok: true, message: 'If that account exists, a 6-digit code is on its way to its email — and to WhatsApp if a mobile number is saved.' });
     } catch (e) {
