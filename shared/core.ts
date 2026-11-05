@@ -323,7 +323,8 @@ export function createCore(db: Store, c: Crypto) {
       const to = str(b.to, 'Destination', { min: 2, max: 80 });
       if (from.toLowerCase() === to.toLowerCase()) throw new HttpError(400, 'Pickup and destination must differ');
       const departAt = new Date(String(b.departAt));
-      if (Number.isNaN(departAt.getTime()) || departAt.getTime() < Date.now()) throw new HttpError(400, 'Departure must be in the future');
+      if (Number.isNaN(departAt.getTime())) throw new HttpError(400, 'Enter a valid departure date');
+      if (departAt.getTime() < Date.now() && b.pastTrip !== true) throw new HttpError(400, 'Departure must be in the future (or mark it as an old trip)');
       const paymentMode = b.paymentMode === 'split' ? 'split' : 'prepaid';
       const price = paymentMode === 'split' ? 0 : Number(b.pricePerSeat);
       if (!Number.isFinite(price) || price < 0 || price > 20000) throw new HttpError(400, 'Price per seat must be between 0 and 20000');

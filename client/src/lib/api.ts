@@ -49,7 +49,7 @@ export const api = {
   myTrips: () => request<{ driving: TripView[]; riding: TripView[] }>('GET', '/trips/mine'),
   addExpense: (id: string, b: { title: string; amount: number; paidBy: string; sharedWith: string[] }) => request<TripView>('POST', `/trips/${id}/expenses`, b),
   removeExpense: (id: string, eid: string) => request<TripView>('DELETE', `/trips/${id}/expenses/${eid}`),
-  createTrip: (b: { carId: string; from: string; to: string; departAt: string; pricePerSeat: number; paymentMode: 'prepaid' | 'split'; offeredSeats: string[]; womenOnly: boolean; notes?: string }) =>
+  createTrip: (b: { carId: string; from: string; to: string; departAt: string; pricePerSeat: number; paymentMode: 'prepaid' | 'split'; pastTrip?: boolean; offeredSeats: string[]; womenOnly: boolean; notes?: string }) =>
     request<TripView>('POST', '/trips', b),
   book: (id: string, seatId: string) => request<TripView>('POST', `/trips/${id}/book`, { seatId }),
   leave: (id: string) => request<TripView>('DELETE', `/trips/${id}/book`),

@@ -24,7 +24,7 @@ export function CreateTripPage() {
   const [cars, setCars] = useState<Car[] | null>(null);
   const [carId, setCarId] = useState<string>('');
   const [offered, setOffered] = useState<string[]>([]);
-  const [f, setF] = useState({ from: '', to: '', departAt: defaultDeparture(), price: 200, notes: '', womenOnly: false, mode: 'prepaid' as 'prepaid' | 'split' });
+  const [f, setF] = useState({ from: '', to: '', departAt: defaultDeparture(), price: 200, notes: '', womenOnly: false, past: false, mode: 'prepaid' as 'prepaid' | 'split' });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -67,7 +67,7 @@ export function CreateTripPage() {
     setBusy(true);
     try {
       const trip = await api.createTrip({
-        carId, from: f.from, to: f.to, departAt: new Date(f.departAt).toISOString(), pricePerSeat: f.mode === 'split' ? 0 : Number(f.price), paymentMode: f.mode,
+        carId, from: f.from, to: f.to, departAt: new Date(f.departAt).toISOString(), pricePerSeat: f.mode === 'split' ? 0 : Number(f.price), paymentMode: f.mode, pastTrip: f.past,
         offeredSeats: offered, womenOnly: f.womenOnly, notes: f.notes || undefined,
       });
       nav(`/trips/${trip.id}`);
@@ -121,6 +121,10 @@ export function CreateTripPage() {
             <div className="field">
               <label htmlFor="when">Departure</label>
               <input id="when" className="input" type="datetime-local" required value={f.departAt} onChange={(e) => setF({ ...f, departAt: e.target.value })} />
+              <label style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                <input type="checkbox" checked={f.past} onChange={(e) => setF({ ...f, past: e.target.checked })} />
+                This is an old trip that already happened
+              </label>
             </div>
           </div>
           <div className="field">
