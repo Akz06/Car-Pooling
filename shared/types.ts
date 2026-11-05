@@ -34,6 +34,30 @@ export interface Booking {
 
 export type TripStatus = 'open' | 'full' | 'departed' | 'cancelled';
 
+/** 'prepaid' = fixed price per seat; 'split' = spends are noted during the trip and shared at the end. */
+export type PaymentMode = 'prepaid' | 'split';
+
+export interface Expense {
+  id: string;
+  title: string;
+  /** Whole rupees. */
+  amount: number;
+  paidBy: string;
+  /** User ids sharing this spend equally (driver and/or passengers). */
+  sharedWith: string[];
+  addedBy: string;
+  createdAt: string;
+}
+
+export interface Transfer { from: string; to: string; amount: number }
+
+export interface Settlement {
+  total: number;
+  /** Positive = is owed money, negative = owes money. */
+  balances: { userId: string; name: string; paid: number; share: number; net: number }[];
+  transfers: Transfer[];
+}
+
 export interface Trip {
   id: string;
   ownerId: string;
@@ -47,6 +71,9 @@ export interface Trip {
   /** Seats the owner offers to passengers (driver seat is never offered). */
   offeredSeats: string[];
   bookings: Booking[];
+  /** Absent = 'prepaid' (older trips). */
+  paymentMode?: PaymentMode;
+  expenses?: Expense[];
   status: TripStatus;
   createdAt: string;
 }
@@ -56,4 +83,6 @@ export interface TripView extends Trip {
   car: Car;
   owner: PublicUser;
   seatsLeft: number;
+  /** Present for split-mode trips. */
+  settlement?: Settlement;
 }

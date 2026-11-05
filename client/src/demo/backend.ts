@@ -61,7 +61,7 @@ export async function demoRequest(method: string, path: string, body: unknown, t
   const b = (body ?? {}) as Record<string, unknown>;
   await new Promise((r) => setTimeout(r, 120)); // feel like a network call
   try {
-    const route = `${method} /${parts.map((p, i) => (i === 1 && !['mine', 'register', 'login', 'logout', 'me'].includes(p) ? ':id' : p)).join('/')}`;
+    const route = `${method} /${parts.map((p, i) => ((i === 1 && !['mine', 'register', 'login', 'logout', 'me'].includes(p)) || (i === 3 && parts[2] === 'expenses') ? ':id' : p)).join('/')}`;
     const id = parts[1];
     switch (route) {
       case 'POST /auth/register': return { status: 201, data: core.register(b) };
@@ -78,6 +78,8 @@ export async function demoRequest(method: string, path: string, body: unknown, t
       case 'POST /trips': return { status: 201, data: core.createTrip(me(), b) };
       case 'POST /trips/:id/book': return { status: 200, data: core.book(me(), id, b.seatId) };
       case 'DELETE /trips/:id/book': return { status: 200, data: core.leave(me(), id) };
+      case 'POST /trips/:id/expenses': return { status: 201, data: core.addExpense(me(), id, b) };
+      case 'DELETE /trips/:id/expenses/:id': return { status: 200, data: core.removeExpense(me(), id, parts[3]) };
       case 'POST /trips/:id/cancel': return { status: 200, data: core.cancel(me(), id) };
       default: return { status: 404, data: { error: 'Not found' } };
     }

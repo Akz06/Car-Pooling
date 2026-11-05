@@ -11,6 +11,7 @@ import { CarStage } from '../components/CarStage';
 import { NumberPlate } from '../components/NumberPlate';
 import { SeatLegend } from '../components/SeatLegend';
 import { CarGallery } from '../components/CarPhotos';
+import { ExpensePanel } from '../components/ExpensePanel';
 
 export function TripPage() {
   const { id } = useParams();
@@ -127,7 +128,7 @@ export function TripPage() {
           <div className="panel">
             <div className="trip-card__meta">
               <div className="when"><b>{t.time}</b><span className="muted">{t.day}</span></div>
-              <div className="price">{rupees(trip.pricePerSeat)}<small>{trip.pricePerSeat ? ' /seat' : ''}</small></div>
+              <div className="price">{trip.paymentMode === 'split' ? <small>Split at end</small> : <>{rupees(trip.pricePerSeat)}<small>{trip.pricePerSeat ? ' /seat' : ''}</small></>}</div>
             </div>
             <div className="route" style={{ margin: '12px 0 16px' }}>
               <div className="route__dots"><i /><b /><i /></div>
@@ -177,7 +178,7 @@ export function TripPage() {
                 </button>
               ) : (
                 <button className="btn btn--primary btn--block" disabled={busy || !selected} onClick={() => selected && act(() => api.book(trip.id, selected), `Seat ${selected} booked — see you on board!`)}>
-                  {selected ? `Book ${selected} · ${rupees(trip.pricePerSeat)}` : whyNot() ?? 'Select a seat'}
+                  {selected ? `Book ${selected}${trip.paymentMode === 'split' ? '' : ` · ${rupees(trip.pricePerSeat)}`}` : whyNot() ?? 'Select a seat'}
                 </button>
               )}
             </div>
@@ -205,6 +206,16 @@ export function TripPage() {
               ))}
             </ul>
           </div>
+
+          {trip.paymentMode === 'split' && (
+            <ExpensePanel
+              key={`${trip.bookings.length}-${user?.id}`}
+              trip={trip}
+              userId={user?.id}
+              onChange={(t) => setTrip(t)}
+              onError={setToast}
+            />
+          )}
 
           <div className="panel">
             <div className="trip-card__meta"><h4 style={{ margin: 0 }}>The car</h4><Link to={`/cars/${model.id}`} className="link">All photos →</Link></div>

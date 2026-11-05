@@ -4,7 +4,7 @@
  * backend (client/src/demo), so both enforce exactly the same rules.
  */
 import { DRIVER_SEAT, allSeats, getModel, modelForCar } from './catalog.ts';
-import type { Car, Gender, PublicUser, Trip, TripStatus, TripView } from './types.ts';
+import type { Car, Expense, Gender, PublicUser, Settlement, Transfer, Trip, TripStatus, TripView } from './types.ts';
 
 export interface UserRecord {
   id: string;
@@ -91,6 +91,44 @@ export function tripStatus(trip: Trip, now = Date.now()): TripStatus {
 
 const live = (t: Trip) => ['open', 'full'].includes(tripStatus(t));
 
+/** Works out each person's net balance and a small set of payments that settles everyone. */
+export function settle(trip: Trip, owner: { id: string; name: string }): Settlement {
+  const people = [{ userId: owner.id, name: owner.name }, ...trip.bookings.map((b) => ({ userId: b.userId, name: b.name }))];
+  const paid = new Map<string, number>(people.map((p) => [p.userId, 0]));
+  const share = new Map<string, number>(people.map((p) => [p.userId, 0]));
+  let total = 0;
+  for (const e of trip.expenses ?? []) {
+    total += e.amount;
+    paid.set(e.paidBy, (paid.get(e.paidBy) ?? 0) + e.amount);
+    const ids = e.sharedWith;
+    if (ids.length === 0) continue;
+    const base = Math.floor(e.amount / ids.length);
+    let extra = e.amount - base * ids.length; // leftover rupees go to the first people
+    for (const id of ids) {
+      share.set(id, (share.get(id) ?? 0) + base + (extra-- > 0 ? 1 : 0));
+    }
+  }
+  const nameOf = (id: string) => people.find((p) => p.userId === id)?.name ?? 'Former passenger';
+  const ids = [...new Set([...paid.keys(), ...share.keys()])];
+  const balances = ids.map((userId) => {
+    const p = paid.get(userId) ?? 0, s = share.get(userId) ?? 0;
+    return { userId, name: nameOf(userId), paid: p, share: s, net: p - s };
+  });
+  const creditors = balances.filter((b) => b.net > 0).map((b) => ({ id: b.userId, left: b.net })).sort((a, b) => b.left - a.left);
+  const debtors = balances.filter((b) => b.net < 0).map((b) => ({ id: b.userId, left: -b.net })).sort((a, b) => b.left - a.left);
+  const transfers: Transfer[] = [];
+  let i = 0, j = 0;
+  while (i < debtors.length && j < creditors.length) {
+    const amount = Math.min(debtors[i].left, creditors[j].left);
+    if (amount > 0) transfers.push({ from: debtors[i].id, to: creditors[j].id, amount });
+    debtors[i].left -= amount;
+    creditors[j].left -= amount;
+    if (debtors[i].left === 0) i++;
+    if (creditors[j].left === 0) j++;
+  }
+  return { total, balances, transfers };
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Body = Record<string, any>;
 
@@ -104,8 +142,11 @@ export function createCore(db: Store, c: Crypto) {
   const viewTrip = (trip: Trip): TripView => {
     const car = db.data.cars.find((x) => x.id === trip.carId)!;
     const owner = db.data.users.find((u) => u.id === trip.ownerId)!;
-    return { ...trip, status: tripStatus(trip), car, owner: publicUser(owner), seatsLeft: trip.offeredSeats.length - trip.bookings.length };
+    const settlement = trip.paymentMode === 'split' ? settle(trip, owner) : undefined;
+    return { ...trip, status: tripStatus(trip), car, owner: publicUser(owner), seatsLeft: trip.offeredSeats.length - trip.bookings.length, settlement };
   };
+
+  const participantIds = (trip: Trip) => [trip.ownerId, ...trip.bookings.map((b) => b.userId)];
 
   const findTrip = (tripId: unknown) => {
     const trip = db.data.trips.find((t) => t.id === tripId);
@@ -283,7 +324,8 @@ export function createCore(db: Store, c: Crypto) {
       if (from.toLowerCase() === to.toLowerCase()) throw new HttpError(400, 'Pickup and destination must differ');
       const departAt = new Date(String(b.departAt));
       if (Number.isNaN(departAt.getTime()) || departAt.getTime() < Date.now()) throw new HttpError(400, 'Departure must be in the future');
-      const price = Number(b.pricePerSeat);
+      const paymentMode = b.paymentMode === 'split' ? 'split' : 'prepaid';
+      const price = paymentMode === 'split' ? 0 : Number(b.pricePerSeat);
       if (!Number.isFinite(price) || price < 0 || price > 20000) throw new HttpError(400, 'Price per seat must be between 0 and 20000');
       const valid = allSeats(model).filter((s) => s !== DRIVER_SEAT);
       const offered: string[] = Array.isArray(b.offeredSeats) ? [...new Set<string>(b.offeredSeats.map(String))] : valid;
@@ -295,6 +337,7 @@ export function createCore(db: Store, c: Crypto) {
         id: c.id('trp'), ownerId: user.id, carId: car.id, from, to, departAt: departAt.toISOString(), pricePerSeat: Math.round(price),
         notes: typeof b.notes === 'string' ? b.notes.trim().slice(0, 300) || undefined : undefined,
         womenOnly: Boolean(b.womenOnly), offeredSeats: allSeats(model).filter((s) => offered.includes(s)),
+        paymentMode, expenses: [],
         bookings: [], status: 'open', createdAt: new Date().toISOString(),
       };
       db.write((d) => d.trips.push(trip));
@@ -320,6 +363,35 @@ export function createCore(db: Store, c: Crypto) {
       if (!trip.bookings.some((x) => x.userId === user.id)) throw new HttpError(404, "You don't have a seat on this trip");
       if (tripStatus(trip) === 'departed') throw new HttpError(409, 'This trip has already departed');
       db.write(() => (trip.bookings = trip.bookings.filter((x) => x.userId !== user.id)));
+      return viewTrip(trip);
+    },
+
+    /** Driver or any booked passenger notes a spend and picks who shares it. */
+    addExpense(user: UserRecord, tripId: unknown, b: Body) {
+      const trip = findTrip(tripId);
+      if (trip.paymentMode !== 'split') throw new HttpError(400, 'This trip uses upfront payment');
+      if (tripStatus(trip) === 'cancelled') throw new HttpError(409, 'This trip was cancelled');
+      const members = participantIds(trip);
+      if (!members.includes(user.id)) throw new HttpError(403, 'Only people on this trip can add spends');
+      const title = str(b?.title, 'What was it for', { min: 2, max: 60 });
+      const amount = Math.round(Number(b?.amount));
+      if (!Number.isFinite(amount) || amount < 1 || amount > 1_000_000) throw new HttpError(400, 'Enter a valid amount');
+      const paidBy = String(b?.paidBy ?? user.id);
+      if (!members.includes(paidBy)) throw new HttpError(400, 'Payer must be on this trip');
+      const sharedWith: string[] = Array.isArray(b?.sharedWith) ? [...new Set<string>(b.sharedWith.map(String))] : [];
+      if (sharedWith.length === 0) throw new HttpError(400, 'Choose at least one person to split with');
+      if (sharedWith.some((id) => !members.includes(id))) throw new HttpError(400, 'Everyone in the split must be on this trip');
+      const expense: Expense = { id: c.id('exp'), title, amount, paidBy, sharedWith, addedBy: user.id, createdAt: new Date().toISOString() };
+      db.write(() => { (trip.expenses ??= []).push(expense); });
+      return viewTrip(trip);
+    },
+
+    removeExpense(user: UserRecord, tripId: unknown, expenseId: unknown) {
+      const trip = findTrip(tripId);
+      const e = trip.expenses?.find((x) => x.id === expenseId);
+      if (!e) throw new HttpError(404, 'Spend not found');
+      if (e.addedBy !== user.id && trip.ownerId !== user.id) throw new HttpError(403, 'Only the person who added it or the driver can remove it');
+      db.write(() => { trip.expenses = trip.expenses!.filter((x) => x.id !== e.id); });
       return viewTrip(trip);
     },
 

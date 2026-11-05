@@ -24,7 +24,7 @@ export function CreateTripPage() {
   const [cars, setCars] = useState<Car[] | null>(null);
   const [carId, setCarId] = useState<string>('');
   const [offered, setOffered] = useState<string[]>([]);
-  const [f, setF] = useState({ from: '', to: '', departAt: defaultDeparture(), price: 200, notes: '', womenOnly: false });
+  const [f, setF] = useState({ from: '', to: '', departAt: defaultDeparture(), price: 200, notes: '', womenOnly: false, mode: 'prepaid' as 'prepaid' | 'split' });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -67,7 +67,7 @@ export function CreateTripPage() {
     setBusy(true);
     try {
       const trip = await api.createTrip({
-        carId, from: f.from, to: f.to, departAt: new Date(f.departAt).toISOString(), pricePerSeat: Number(f.price),
+        carId, from: f.from, to: f.to, departAt: new Date(f.departAt).toISOString(), pricePerSeat: f.mode === 'split' ? 0 : Number(f.price), paymentMode: f.mode,
         offeredSeats: offered, womenOnly: f.womenOnly, notes: f.notes || undefined,
       });
       nav(`/trips/${trip.id}`);
@@ -124,9 +124,22 @@ export function CreateTripPage() {
             </div>
           </div>
           <div className="field">
-            <label htmlFor="price">Price per seat (₹)</label>
-            <input id="price" className="input" type="number" min={0} max={20000} step={10} value={f.price} onChange={(e) => setF({ ...f, price: Number(e.target.value) })} />
+            <label>Payment</label>
+            <label className="toggle">
+              <input type="radio" name="mode" checked={f.mode === 'prepaid'} onChange={() => setF({ ...f, mode: 'prepaid' })} />
+              <span><b>Pay upfront</b><br /><small className="muted">Fixed price per seat</small></span>
+            </label>
+            <label className="toggle">
+              <input type="radio" name="mode" checked={f.mode === 'split'} onChange={() => setF({ ...f, mode: 'split' })} />
+              <span><b>Split trip expenses</b><br /><small className="muted">Note spends during the trip, split at the end</small></span>
+            </label>
           </div>
+          {f.mode === 'prepaid' && (
+            <div className="field">
+              <label htmlFor="price">Price per seat (₹)</label>
+              <input id="price" className="input" type="number" min={0} max={20000} step={10} value={f.price} onChange={(e) => setF({ ...f, price: Number(e.target.value) })} />
+            </div>
+          )}
           <div className="field">
             <label htmlFor="notes">Notes for riders</label>
             <textarea id="notes" className="input" rows={3} maxLength={300} placeholder="Luggage space, stops, music, pets…" value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} />
