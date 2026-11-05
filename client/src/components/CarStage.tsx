@@ -60,24 +60,15 @@ export function CarStage({
   const narrow = useNarrow();
   const orientation = narrow ? 'vertical' : preferred;
   const photosAvailable = hasSeatPhotos(view.model);
-  const [kind, setKind] = useState<'3d' | 'photo' | 'map'>(webglOk ? '3d' : 'map');
-  const shownKind = kind === 'photo' && !photosAvailable ? (webglOk ? '3d' : 'map') : kind;
-  const [mode, setMode] = useState<'cabin' | 'exterior'>(reveal ? 'exterior' : initialMode);
-  const [preset, setPreset] = useState<CameraPreset>(reveal || initialMode === 'exterior' ? 'front' : 'top');
+  // Seat map only: no 3D / photo views, no exterior or tilt options.
+  const kind = 'map' as 'map' | '3d' | 'photo';
+  const shownKind = kind;
+  void photosAvailable; void reveal; void initialMode; void webglOk;
+  const mode = 'cabin' as 'cabin' | 'exterior';
+  const [preset, setPreset] = useState<CameraPreset>('top');
   const [night, setNight] = useState(false);
-  const [tilt, setTilt] = useState(false);
+  const tilt = false;
   const [ambient, setAmbient] = useState(AMBIENT[0]);
-
-  useEffect(() => {
-    if (!reveal) return;
-    const t = setTimeout(() => { setMode('cabin'); setPreset('top'); }, 2200);
-    return () => clearTimeout(t);
-  }, [reveal]);
-
-  const setRoof = (m: 'cabin' | 'exterior') => {
-    setMode(m);
-    setPreset(m === 'cabin' ? 'top' : 'front');
-  };
 
   const map = (
     <div className="stage__floor">
@@ -91,22 +82,10 @@ export function CarStage({
   return (
     <div className={`stage ${night ? 'stage--night' : ''} ${tilt && kind === 'map' ? 'stage--tilt' : ''} stage--${orientation} stage--${shownKind}`}>
       <div className="stage__toolbar">
-        {(webglOk || photosAvailable) && (
-          <div className="seg">
-            {webglOk && <button className={shownKind === '3d' ? 'on' : ''} onClick={() => setKind('3d')}>3D</button>}
-            {photosAvailable && <button className={shownKind === 'photo' ? 'on' : ''} onClick={() => setKind('photo')}>Photos</button>}
-            <button className={shownKind === 'map' ? 'on' : ''} onClick={() => setKind('map')}>Seat map</button>
-          </div>
-        )}
-        {shownKind !== 'photo' && <div className="seg">
-          <button className={mode === 'cabin' ? 'on' : ''} onClick={() => setRoof('cabin')}>Cabin</button>
-          <button className={mode === 'exterior' ? 'on' : ''} onClick={() => setRoof('exterior')}>Exterior</button>
-        </div>}
         <div className="seg">
           <button className={!night ? 'on' : ''} onClick={() => setNight(false)} title="Daylight">☀︎</button>
           <button className={night ? 'on' : ''} onClick={() => setNight(true)} title="Night — headlamps & ambient lighting">☾</button>
         </div>
-        {shownKind === 'map' && <button className={`chip ${tilt ? 'chip--on' : ''}`} onClick={() => setTilt((t) => !t)}>Tilt</button>}
         {shownKind === 'map' && night && view.model.ambientLight && (
           <div className="ambient-picker" title="Ambient lighting">
             {AMBIENT.map((c) => (
