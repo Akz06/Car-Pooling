@@ -17,6 +17,8 @@ export interface UserRecord {
   createdAt: string;
   /** Mobile number in +<country><number> form; used for WhatsApp password reset codes. */
   phone?: string;
+  /** Set when an owner added this person; they sign in by choosing "Forgot password". */
+  addedBy?: string;
 }
 
 /** A pending password reset: only a hash of the code is stored. */
@@ -177,6 +179,23 @@ export function createCore(db: Store, c: Crypto) {
       db.write((d) => d.users.push(user));
       return startSession(user);
     },
+
+    /** An owner adds a person by name + email. No password is shared: they set one via "Forgot password". */
+    addUser(owner: UserRecord, b: Body) {
+      const name = str(b?.name, 'Name', { min: 2, max: 60 });
+      const email = str(b?.email, 'Email', { min: 5, max: 120 }).toLowerCase();
+      const gender = b?.gender as Gender;
+      if (!/^\S+@\S+\.\S+$/.test(email)) throw new HttpError(400, 'Enter a valid email');
+      if (gender !== 'M' && gender !== 'F') throw new HttpError(400, 'Select gender (M or F) — it is shown on their booked seat');
+      if (db.data.users.some((u) => u.email === email)) throw new HttpError(409, 'An account with this email already exists');
+      const { hash, salt } = c.hash(c.token()); // unguessable placeholder password
+      const user: UserRecord = { id: c.id('usr'), name, email, gender, passwordHash: hash, salt, rating: 5, createdAt: new Date().toISOString(), addedBy: owner.id };
+      db.write((d) => d.users.push(user));
+      return { ...publicUser(user), email };
+    },
+
+    myUsers: (owner: UserRecord) =>
+      db.data.users.filter((u) => u.addedBy === owner.id).map((u) => ({ ...publicUser(u), email: u.email })),
 
     login(b: Body) {
       const email = String(b?.email ?? '').trim().toLowerCase();

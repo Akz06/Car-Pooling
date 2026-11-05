@@ -34,6 +34,31 @@ export function AccountPage() {
     }
   };
 
+  const [users, setUsers] = useState<Me[]>([]);
+  const [u, setU] = useState({ name: '', email: '', gender: 'M' as 'M' | 'F' });
+  const [uMsg, setUMsg] = useState('');
+  const [uErr, setUErr] = useState('');
+  const [uBusy, setUBusy] = useState(false);
+
+  useEffect(() => { api.myUsers().then(setUsers).catch(() => undefined); }, []);
+
+  const addUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUMsg('');
+    setUErr('');
+    setUBusy(true);
+    try {
+      const created = await api.addUser(u);
+      setUsers((list) => [...list, created]);
+      setU({ name: '', email: '', gender: 'M' });
+      setUMsg(`Added ${created.name}. They can sign in by choosing "Forgot password" with ${created.email}.`);
+    } catch (err) {
+      setUErr((err as Error).message);
+    } finally {
+      setUBusy(false);
+    }
+  };
+
   if (!me) return error ? <div className="error">{error}</div> : <div className="page-loading">Loading…</div>;
   return (
     <div style={{ maxWidth: 520, margin: '0 auto' }}>
@@ -61,6 +86,33 @@ export function AccountPage() {
         {error && <div className="error">{error}</div>}
         {msg && <div className="notes" style={{ marginBottom: 12 }}>{msg}</div>}
         <button className="btn btn--primary btn--block" disabled={busy}>{busy ? 'Saving…' : 'Save'}</button>
+      </form>
+
+      <form className="panel" onSubmit={addUser} style={{ marginTop: 18 }}>
+        <h2 style={{ marginTop: 0 }}>Add a user</h2>
+        <div className="field">
+          <label htmlFor="uname">Name</label>
+          <input id="uname" className="input" value={u.name} onChange={(e) => setU({ ...u, name: e.target.value })} required minLength={2} />
+        </div>
+        <div className="field">
+          <label htmlFor="uemail">Email</label>
+          <input id="uemail" className="input" type="email" value={u.email} onChange={(e) => setU({ ...u, email: e.target.value })} required />
+        </div>
+        <div className="field">
+          <label htmlFor="ugender">Gender</label>
+          <select id="ugender" className="input" value={u.gender} onChange={(e) => setU({ ...u, gender: e.target.value as 'M' | 'F' })}>
+            <option value="M">Male</option>
+            <option value="F">Female</option>
+          </select>
+        </div>
+        {uErr && <div className="error">{uErr}</div>}
+        {uMsg && <div className="notes" style={{ marginBottom: 12 }}>{uMsg}</div>}
+        <button className="btn btn--primary btn--block" disabled={uBusy}>{uBusy ? 'Adding…' : 'Add user'}</button>
+        {users.length > 0 && (
+          <ul style={{ margin: '14px 0 0', paddingLeft: 18 }}>
+            {users.map((x) => <li key={x.id}>{x.name} <span className="muted">· {x.email}</span></li>)}
+          </ul>
+        )}
       </form>
     </div>
   );

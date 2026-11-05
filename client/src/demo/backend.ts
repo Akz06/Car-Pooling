@@ -68,6 +68,8 @@ export async function demoRequest(method: string, path: string, body: unknown, t
       case 'POST /auth/login': return { status: 200, data: core.login(b) };
       case 'POST /auth/logout': me(); core.logout(token ?? undefined); return { status: 204, data: undefined };
       case 'GET /auth/me': { const u = me(); return { status: 200, data: { id: u.id, name: u.name, gender: u.gender, rating: u.rating } }; }
+      case 'GET /users': return { status: 200, data: core.myUsers(me()) };
+      case 'POST /users': return { status: 201, data: core.addUser(me(), b) };
       case 'GET /catalog': return { status: 200, data: CATALOG };
       case 'GET /cars/mine': return { status: 200, data: core.myCars(me()) };
       case 'POST /cars': return { status: 201, data: core.addCar(me(), b) };

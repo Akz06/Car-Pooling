@@ -30,6 +30,8 @@ export function createApp(db: Store, extend?: (app: express.Express) => void, ot
   app.post('/api/auth/logout', (req, res) => { me(req); core.logout(token(req)); res.status(204).end(); });
   app.get('/api/auth/me', (req, res) => { const u = me(req); res.json({ id: u.id, name: u.name, gender: u.gender, rating: u.rating, email: u.email, phone: u.phone }); });
   app.patch('/api/auth/me', (req, res) => res.json(core.updateMe(me(req), req.body)));
+  app.get('/api/users', (req, res) => res.json(core.myUsers(me(req))));
+  app.post('/api/users', (req, res) => res.status(201).json(core.addUser(me(req), req.body)));
 
   // Forgot password → 6-digit code on WhatsApp → new password.
   const sixDigits = () => String(crypto.randomInt(0, 1_000_000)).padStart(6, '0');
