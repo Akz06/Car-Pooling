@@ -440,6 +440,7 @@ h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: v
 .make-card:hover { transform: translateY(-2px); border-color: #3a4660; }
 .make-card.on { border-color: var(--accent); }
 .make-card__badge { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: #fff; font-weight: 800; letter-spacing: .02em; box-shadow: inset 0 -3px 0 rgba(0,0,0,.25); }
+.make-card__badge img { width: 28px; height: 28px; object-fit: contain; display: block; }
 .make-card b { font-size: 16px; }
 .make-card small { color: var(--muted); }
 .pick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

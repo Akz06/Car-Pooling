@@ -26,6 +26,26 @@ function resizeImage(file: File, max = 1280): Promise<string> {
   });
 }
 
+/** Brand logo files in `client/public/logos/` (white SVGs from Simple Icons). */
+const MAKE_LOGOS: Record<string, string> = {
+  Honda: 'honda', Hyundai: 'hyundai', Kia: 'kia', Mahindra: 'mahindra', 'Maruti Suzuki': 'suzuki',
+  MG: 'mg', Tata: 'tata', Tesla: 'tesla', Toyota: 'toyota',
+};
+
+/** Company logo on the brand colour; falls back to initials if there's no logo or it fails to load. */
+function MakeLogo({ make, color }: { make: string; color: string }) {
+  const [failed, setFailed] = useState(false);
+  const file = MAKE_LOGOS[make];
+  const initials = make.split(' ').map((w) => w[0]).join('').slice(0, 2);
+  return (
+    <span className="make-card__badge" style={{ background: color }}>
+      {file && !failed
+        ? <img src={`/logos/${file}.svg`} alt={`${make} logo`} loading="lazy" onError={() => setFailed(true)} />
+        : initials}
+    </span>
+  );
+}
+
 const STEPS = ['Make', 'Model', 'Seating', 'Colour', 'Details'] as const;
 type Step = 0 | 1 | 2 | 3 | 4;
 
@@ -126,7 +146,7 @@ export function AddCarPage() {
         <div className="make-grid">
           {makes.map(({ make: mk, models }) => (
             <button key={mk} type="button" className={`make-card ${mk === make ? 'on' : ''}`} onClick={() => pickMake(mk)}>
-              <span className="make-card__badge" style={{ background: models[0].brandColor }}>{mk.split(' ').map((w) => w[0]).join('').slice(0, 2)}</span>
+              <MakeLogo make={mk} color={models[0].brandColor} />
               <b>{mk}</b>
               <small>{models.length} model{models.length > 1 ? 's' : ''}</small>
             </button>
