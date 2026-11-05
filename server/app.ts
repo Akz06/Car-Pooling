@@ -58,6 +58,7 @@ export function createApp(db: Store, extend?: (app: express.Express) => void, ot
   app.get('/api/trips/mine', (req, res) => res.json(core.myTrips(me(req))));
   app.get('/api/trips/:id', (req, res) => res.json(core.getTrip(req.params.id)));
   app.post('/api/trips', (req, res) => res.status(201).json(core.createTrip(me(req), req.body)));
+  app.patch('/api/trips/:id', (req, res) => res.json(core.updateTrip(me(req), req.params.id, req.body)));
   app.post('/api/trips/:id/book', (req, res) => res.json(core.book(me(req), req.params.id, req.body?.seatId)));
   app.delete('/api/trips/:id/book', (req, res) => res.json(core.leave(me(req), req.params.id)));
   app.post('/api/trips/:id/expenses', (req, res) => res.status(201).json(core.addExpense(me(req), req.params.id, req.body)));

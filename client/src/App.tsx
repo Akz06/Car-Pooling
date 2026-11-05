@@ -8,6 +8,7 @@ import { TripPage } from './pages/TripPage';
 import { GaragePage } from './pages/GaragePage';
 import { AddCarPage } from './pages/AddCarPage';
 import { CreateTripPage } from './pages/CreateTripPage';
+import { EditTripPage } from './pages/EditTripPage';
 import { MyTripsPage } from './pages/MyTripsPage';
 import { ShowroomPage } from './pages/ShowroomPage';
 import { CarGalleryPage } from './pages/CarGalleryPage';
@@ -83,6 +84,7 @@ export function App() {
           <Route path="/showroom" element={<ShowroomPage />} />
           <Route path="/cars/:modelId" element={<CarGalleryPage />} />
           <Route path="/trips/new" element={<RequireAuth><CreateTripPage /></RequireAuth>} />
+          <Route path="/trips/:id/edit" element={<RequireAuth><EditTripPage /></RequireAuth>} />
           <Route path="/trips/:id" element={<TripPage />} />
           <Route path="/garage" element={<RequireAuth><GaragePage /></RequireAuth>} />
           <Route path="/garage/new" element={<RequireAuth><AddCarPage /></RequireAuth>} />

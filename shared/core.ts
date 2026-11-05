@@ -415,6 +415,45 @@ export function createCore(db: Store, c: Crypto) {
       return viewTrip(trip);
     },
 
+    /** Driver edits route, time, price, notes and offered seats (car stays fixed). */
+    updateTrip(user: UserRecord, tripId: unknown, b: Body) {
+      const trip = findTrip(tripId);
+      if (trip.ownerId !== user.id) throw new HttpError(403, 'Only the driver can edit this trip');
+      const status = tripStatus(trip);
+      if (status === 'departed' || status === 'cancelled') throw new HttpError(409, `This trip is ${status}`);
+      const car = db.data.cars.find((x) => x.id === trip.carId);
+      const model = car ? modelForCar(car) : undefined;
+      const from = str(b?.from ?? trip.from, 'Pickup', { min: 2, max: 80 });
+      const to = str(b?.to ?? trip.to, 'Destination', { min: 2, max: 80 });
+      if (from.toLowerCase() === to.toLowerCase()) throw new HttpError(400, 'Pickup and destination must differ');
+      const departAt = new Date(String(b?.departAt ?? trip.departAt));
+      if (Number.isNaN(departAt.getTime())) throw new HttpError(400, 'Enter a valid departure date');
+      if (departAt.toISOString() !== trip.departAt && departAt.getTime() < Date.now()) throw new HttpError(400, 'Departure must be in the future');
+      let price = trip.pricePerSeat;
+      if (trip.paymentMode === 'prepaid' && b?.pricePerSeat !== undefined) {
+        price = Number(b.pricePerSeat);
+        if (!Number.isFinite(price) || price < 0 || price > 20000) throw new HttpError(400, 'Price per seat must be between 0 and 20000');
+      }
+      let offered = trip.offeredSeats;
+      if (Array.isArray(b?.offeredSeats) && model) {
+        const valid = allSeats(model).filter((s) => s !== DRIVER_SEAT);
+        const req: string[] = [...new Set<string>(b.offeredSeats.map(String))];
+        if (req.length === 0 || req.some((s) => !valid.includes(s))) throw new HttpError(400, 'Offer at least one valid passenger seat');
+        if (trip.bookings.some((x) => !req.includes(x.seatId))) throw new HttpError(409, 'You cannot remove a seat that is already booked');
+        offered = allSeats(model).filter((s) => req.includes(s));
+      }
+      const womenOnly = b?.womenOnly === undefined ? trip.womenOnly : Boolean(b.womenOnly);
+      if (womenOnly && user.gender !== 'F') throw new HttpError(400, 'Only women drivers can publish a women-only trip');
+      if (womenOnly && !trip.womenOnly && trip.bookings.some((x) => x.gender !== 'F')) throw new HttpError(409, 'Men have already booked this trip');
+      const clash = db.data.trips.find((t) => t.id !== trip.id && t.carId === trip.carId && live(t) && Math.abs(new Date(t.departAt).getTime() - departAt.getTime()) < 2 * 3600_000);
+      if (clash) throw new HttpError(409, `This car already has a trip ${clash.from} → ${clash.to} within 2 hours of that time`);
+      const notes = b?.notes === undefined ? trip.notes : (typeof b.notes === 'string' ? b.notes.trim().slice(0, 300) || undefined : undefined);
+      db.write(() => {
+        Object.assign(trip, { from, to, departAt: departAt.toISOString(), pricePerSeat: Math.round(price), offeredSeats: offered, womenOnly, notes });
+      });
+      return viewTrip(trip);
+    },
+
     cancel(user: UserRecord, tripId: unknown) {
       const trip = findTrip(tripId);
       if (trip.ownerId !== user.id) throw new HttpError(403, 'Only the driver can cancel this trip');

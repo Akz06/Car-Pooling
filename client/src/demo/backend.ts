@@ -78,6 +78,7 @@ export async function demoRequest(method: string, path: string, body: unknown, t
       case 'GET /trips/mine': return { status: 200, data: core.myTrips(me()) };
       case 'GET /trips/:id': return { status: 200, data: core.getTrip(id) };
       case 'POST /trips': return { status: 201, data: core.createTrip(me(), b) };
+      case 'PATCH /trips/:id': return { status: 200, data: core.updateTrip(me(), id, b) };
       case 'POST /trips/:id/book': return { status: 200, data: core.book(me(), id, b.seatId) };
       case 'DELETE /trips/:id/book': return { status: 200, data: core.leave(me(), id) };
       case 'POST /trips/:id/expenses': return { status: 201, data: core.addExpense(me(), id, b) };
